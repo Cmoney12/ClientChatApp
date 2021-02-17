@@ -1,6 +1,5 @@
-//
-// Created by coreylovette on 2/17/21.
-//
+#include "mainwindow.h"
+#include "./ui_mainwindow.h"
 #include <QFormLayout>
 #include <QTcpSocket>
 #include <QWidget>
@@ -10,14 +9,14 @@
 #include <QStandardItemModel>
 #include <QStringLiteral>
 
-#include "MainWindow.h"
-
 MainWindow::MainWindow(QWidget *parent)
-        : QMainWindow(parent)
-        , socket(new QTcpSocket)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+    , socket(new QTcpSocket)
 {
-    auto *widget = new QWidget;
-    auto *layout = new QFormLayout;
+    ui->setupUi(this);
+    QWidget *widget = new QWidget;
+    QFormLayout *layout = new QFormLayout;
     widget->setLayout(layout);
     connect_button = new QPushButton("connect");
     message_view = new QTextEdit;
@@ -64,7 +63,14 @@ void MainWindow::onReadyRead()
 }
 
 
+void MainWindow::messageRecieved(const QString &message) {
+    message_view->append(message);
+
+}
+
+
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+
