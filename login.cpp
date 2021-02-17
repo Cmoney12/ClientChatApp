@@ -1,8 +1,10 @@
 #include "login.h"
 #include <QWidget>
 #include <QFormLayout>
+#include <QMessageBox>
 
 #include "mainwindow.h"
+#include "database_handler.h"
 
 
 login::login(QWidget *parent) : QMainWindow(parent)
@@ -26,7 +28,15 @@ login::login(QWidget *parent) : QMainWindow(parent)
 }
 
 void login::on_login() {
-    auto mainwindow = new MainWindow();
-    mainwindow->show();
-    this->hide();
+    database_handler sqlite_handler;
+    QString username = username_label->text();
+    QString password = password_label->text();
+    bool login_result = sqlite_handler.login(username.toStdString(), password.toStdString());
+    if (login_result) {
+        auto mainwindow = new MainWindow();
+        mainwindow->show();
+        this->hide();
+    } else {
+        QMessageBox::warning(this, "Login Error", "Username/Password does not exist");
+    }
 }
