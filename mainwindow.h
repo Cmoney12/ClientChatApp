@@ -6,6 +6,8 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QTextEdit>
+#include <QMenu>
+#include <QListView>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -16,21 +18,27 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
 
 public:
     QPushButton *connect_button;
     QTextEdit *message_view;
     QPushButton *send_button;
     QLineEdit *message_line;
+    QMenu *option_menu;
+    QMenu *erase_messages;
+    QListView *username_view;
+    QLineEdit *search_user_line;
+    QPushButton *user_button;
+    QMenuBar *menu;
 
 public slots:
-    void messageRecieved(const QString &message);
     void sendMessage();
     //void dicsonnectFromServer();
     void connection();
     void onReadyRead();
+    void erase_all_messages();
 
 private:
     Ui::MainWindow *ui;

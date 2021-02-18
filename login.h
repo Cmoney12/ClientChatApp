@@ -20,6 +20,7 @@ public:
     QLabel *password_label;
 public slots:
     void on_login();
+    void register_user();
 
 };
 
