@@ -10,8 +10,7 @@
 #include <QStringLiteral>
 #include <iostream>
 #include <QSplitter>
-#include "database_handler.h"
-//<widget class="QWidget" name="centralwidget"/>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -51,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     setMenuBar(menu);
     //left_widget->setBaseSize(400,400);
     //splitter->setSizes(QList<int>() << 10 << 70);
+    data_handler = new database_handler;
 
     connect(option_menu, SIGNAL(triggered(QAction*)), SLOT(erase_all_messages()));
     connect(connect_button, &QPushButton::clicked, this, &MainWindow::connection);
@@ -61,9 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 
-
 void MainWindow::connection() {
-
     socket->connectToHost("127.0.0.1", 1234);
 }
 
@@ -82,19 +80,17 @@ void MainWindow::onReadyRead()
 {
     // We'll loop over every (complete) line of text that the server has sent us:
     while(socket->canReadLine()) {
-        database_handler data_handler;
         // Here's the line the of text the server sent us (we use UTF-8 so
         // that non-English speakers can chat in their native language)
         QString line = QString::fromUtf8(socket->readLine()).trimmed();
-        data_handler.insert_message(line.toStdString());
+        //QString line = socket->readLine();
         message_view->append(line);
+        data_handler->insert_message(line.toStdString());
     }
 }
 
-void MainWindow::erase_all_messages() {
-    std::cout << "clicked";
-    database_handler data_handler;
-    data_handler.clear_messages();
+void MainWindow::erase_all_messages() const {
+    data_handler->clear_messages();
     message_view->clear();
 }
 

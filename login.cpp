@@ -37,7 +37,7 @@ void login::on_login() {
         auto mainwindow = new MainWindow();
         //mainwindow->setBaseSize(500,500);
         mainwindow->show();
-        this->hide();
+        this->close();
     } else {
         QMessageBox::warning(this, "Login Error", "Username/Password does not exist");
     }

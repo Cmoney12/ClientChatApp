@@ -8,6 +8,7 @@
 #include <QTextEdit>
 #include <QMenu>
 #include <QListView>
+#include "database_handler.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -32,13 +33,13 @@ public:
     QLineEdit *search_user_line;
     QPushButton *user_button;
     QMenuBar *menu;
+    database_handler *data_handler;
 
 public slots:
     void sendMessage();
-    //void dicsonnectFromServer();
     void connection();
     void onReadyRead();
-    void erase_all_messages();
+    void erase_all_messages() const;
 
 private:
     Ui::MainWindow *ui;
