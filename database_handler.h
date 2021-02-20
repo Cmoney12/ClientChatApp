@@ -14,26 +14,22 @@
 class database_handler {
 public:
     bool login(const std::string &user_name, const std::string &pass_word) {
+        bool found = false;
         if (sqlite3_open("/home/coreylovette/CLionProjects/ClientChatApp/messanger_db.sqlite", &db) == SQLITE_OK) {
             std::string sql = "SELECT * FROM Login WHERE username='" +
                               user_name + "' and password='" + pass_word + "'";
             struct sqlite3_stmt *selectstmt;
             int result = sqlite3_prepare_v2(db, sql.c_str(), -1, &selectstmt, nullptr);
             if (result == SQLITE_OK) {
-                sqlite3_free(db);
                 if (sqlite3_step(selectstmt) == SQLITE_ROW) {
                     // record found
                     sqlite3_finalize(selectstmt);
-                    return true;
-                } else {
-
-                    return false;
+                    found =true;
                 }
             }
-        } else {
-            return false;
         }
         sqlite3_close(db);
+        return found;
     }
 
     bool register_user(const std::string &user_name, const std::string &pass_word) {
