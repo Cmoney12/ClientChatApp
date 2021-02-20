@@ -26,6 +26,7 @@ public:
     QPushButton *connect_button;
     QTextEdit *message_view;
     QPushButton *send_button;
+    QPushButton *picture_button;
     QLineEdit *message_line;
     QMenu *option_menu;
     QMenu *erase_messages;
@@ -40,6 +41,7 @@ public slots:
     void sendMessage();
     void onReadyRead();
     void erase_all_messages() const;
+    void send_picture();
 
 private:
     Ui::MainWindow *ui;
