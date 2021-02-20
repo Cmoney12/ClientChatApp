@@ -49,6 +49,10 @@ MainWindow::MainWindow(QWidget *parent)
     setMenuBar(menu);
     data_handler = new database_handler;
 
+    std::string messages = data_handler->load_messages();
+    QString message = QString::fromUtf8(messages.c_str());
+    message_view->append(message);
+
     connect(option_menu, SIGNAL(triggered(QAction*)), SLOT(erase_all_messages()));
     connect(send_button, &QPushButton::clicked, this, &MainWindow::sendMessage);
     connect(message_line, &QLineEdit::returnPressed, this, &MainWindow::sendMessage);
@@ -61,7 +65,6 @@ void MainWindow::sendMessage() {
     if(message.isEmpty()) {
         return;
     } else {
-        //QDataStream clientStream(socket);
         socket->write(QString(message + "\n").toUtf8());
     }
     message_line->clear();
@@ -83,7 +86,6 @@ void MainWindow::erase_all_messages() const {
     data_handler->clear_messages();
     message_view->clear();
 }
-
 
 MainWindow::~MainWindow()
 {
