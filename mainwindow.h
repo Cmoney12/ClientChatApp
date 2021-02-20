@@ -36,6 +36,7 @@ public:
     database_handler *data_handler;
 
 public slots:
+    void connection();
     void sendMessage();
     void onReadyRead();
     void erase_all_messages() const;

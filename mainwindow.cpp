@@ -16,7 +16,6 @@ MainWindow::MainWindow(QWidget *parent)
     , socket(new QTcpSocket)
 {
     ui->setupUi(this);
-    socket->connectToHost("127.0.0.1", 1234);
     auto *splitter = new QSplitter(Qt::Horizontal);
 
     auto *rightwidget = new QWidget;
@@ -49,15 +48,19 @@ MainWindow::MainWindow(QWidget *parent)
     setMenuBar(menu);
     data_handler = new database_handler;
 
-    std::string messages = data_handler->load_messages();
-    QString message = QString::fromUtf8(messages.c_str());
-    message_view->append(message);
-
+    connect(connect_button, &QPushButton::clicked, this, &MainWindow::connection);
     connect(option_menu, SIGNAL(triggered(QAction*)), SLOT(erase_all_messages()));
     connect(send_button, &QPushButton::clicked, this, &MainWindow::sendMessage);
     connect(message_line, &QLineEdit::returnPressed, this, &MainWindow::sendMessage);
     connect(socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 
+}
+
+void MainWindow::connection() {
+    std::string messages = data_handler->load_messages();
+    QString message = QString::fromUtf8(messages.c_str());
+    message_view->append(message);
+    socket->connectToHost("127.0.0.1", 1234);
 }
 
 void MainWindow::sendMessage() {

@@ -14,7 +14,6 @@
 class database_handler {
 public:
     bool login(const std::string &user_name, const std::string &pass_word) {
-
         if (sqlite3_open("/home/coreylovette/CLionProjects/ClientChatApp/messanger_db.sqlite", &db) == SQLITE_OK) {
             std::string sql = "SELECT * FROM Login WHERE username='" +
                               user_name + "' and password='" + pass_word + "'";
@@ -72,10 +71,8 @@ public:
         rc = sqlite3_open("/home/coreylovette/CLionProjects/ClientChatApp/messanger_db.sqlite", &db);
         //rc = sqlite3_open("messanger_db.sqlite", &db);
         if (rc != SQLITE_OK) {
-
             //fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
-
-            return 1;
+            return 0;
         }
 
         std::string sql = "INSERT INTO Messages VALUES('" + message + "','" + get_current_datetime() +"')";
@@ -99,31 +96,27 @@ public:
         std::string query = "select message from Messages";
         std::string messages;
         rc = sqlite3_open("/home/coreylovette/CLionProjects/ClientChatApp/messanger_db.sqlite", &db);
-        if ( sqlite3_prepare(db, query.c_str(), -1, &selectStmt, 0 ) == SQLITE_OK )
-        {
-            int ctotal = sqlite3_column_count(selectStmt); // Count the Number of Columns in the Table
-            int res = 0;
-            while (true)
-            {
+        if ( sqlite3_prepare(db, query.c_str(), -1, &selectStmt, nullptr ) == SQLITE_OK ) {
+            int ctotal = sqlite3_column_count(selectStmt);// Count the Number of Columns in the Table
+            int res;
+            while (true) {
                 res = sqlite3_step(selectStmt); // Execute SQL Statement.
-                if ( res == SQLITE_ROW )
-                {
-                    //sqlite3_finalize(selectStmt);
-                    for ( int i = 0; i < ctotal; i++ )  // Loop times the number of columns in the table
-                    {
-                        std::string s = (char*)sqlite3_column_text(selectStmt, i);  // Read each Column in the row.
-                        // print or format the output as you want
-                        messages += s;
+                if (res == SQLITE_ROW) {
+                        //sqlite3_finalize(selectStmt);
+                        for (int i = 0; i < ctotal; i++)  // Loop times the number of columns in the table
+                        {
+                            std::string s = (char *) sqlite3_column_text(selectStmt,i);  // Read each Column in the row.
+                            // print or format the output as you want
+                            messages += s;
+                        }
+                        messages += "\n";
                     }
-                    messages+="\n";
-                }
 
-                if ( res == SQLITE_DONE || res==SQLITE_ERROR)
-                {
-                    break;
+                    if (res == SQLITE_DONE || res == SQLITE_ERROR) {
+                        break;
+                    }
                 }
             }
-        }
         sqlite3_finalize(selectStmt);
         sqlite3_free(db);
         return messages;
