@@ -6,9 +6,7 @@
 #include <QHostAddress>
 #include <QString>
 #include <QThread>
-#include <QStandardItemModel>
 #include <QStringLiteral>
-#include <iostream>
 #include <QSplitter>
 
 
@@ -18,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
     , socket(new QTcpSocket)
 {
     ui->setupUi(this);
+    socket->connectToHost("127.0.0.1", 1234);
     auto *splitter = new QSplitter(Qt::Horizontal);
 
     auto *rightwidget = new QWidget;
@@ -35,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
     username_view = new QListView;
     left_widget->setLayout(leftlayout);
     rightwidget->setLayout(rightlayout);
-    connect_button = new QPushButton("connect");
+    connect_button = new QPushButton("Connect");
     message_view = new QTextEdit;
     send_button = new QPushButton("Send");
     message_line = new QLineEdit;
@@ -48,32 +47,24 @@ MainWindow::MainWindow(QWidget *parent)
     splitter->addWidget(rightwidget);
     setCentralWidget(splitter);
     setMenuBar(menu);
-    //left_widget->setBaseSize(400,400);
-    //splitter->setSizes(QList<int>() << 10 << 70);
     data_handler = new database_handler;
 
     connect(option_menu, SIGNAL(triggered(QAction*)), SLOT(erase_all_messages()));
-    connect(connect_button, &QPushButton::clicked, this, &MainWindow::connection);
     connect(send_button, &QPushButton::clicked, this, &MainWindow::sendMessage);
     connect(message_line, &QLineEdit::returnPressed, this, &MainWindow::sendMessage);
     connect(socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
 
 }
 
-
-void MainWindow::connection() {
-    socket->connectToHost("127.0.0.1", 1234);
-}
-
 void MainWindow::sendMessage() {
-    QString message = message_line->text() + "\n";
+    QString message = message_line->text();
     if(message.isEmpty()) {
         return;
     } else {
-        QDataStream clientStream(socket);
-        clientStream << message;
-        message_line->clear();
+        //QDataStream clientStream(socket);
+        socket->write(QString(message + "\n").toUtf8());
     }
+    message_line->clear();
 }
 
 void MainWindow::onReadyRead()
@@ -81,9 +72,8 @@ void MainWindow::onReadyRead()
     // We'll loop over every (complete) line of text that the server has sent us:
     while(socket->canReadLine()) {
         // Here's the line the of text the server sent us (we use UTF-8 so
-        // that non-English speakers can chat in their native language)
-        QString line = QString::fromUtf8(socket->readLine()).trimmed();
-        //QString line = socket->readLine();
+        //QString line = QString::fromUtf8(socket->readLine()).trimmed();
+        QString line = socket->readLine();
         message_view->append(line);
         data_handler->insert_message(line.toStdString());
     }
@@ -97,6 +87,7 @@ void MainWindow::erase_all_messages() const {
 
 MainWindow::~MainWindow()
 {
+    delete data_handler;
     delete ui;
 }
 

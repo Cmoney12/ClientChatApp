@@ -37,7 +37,6 @@ public:
 
 public slots:
     void sendMessage();
-    void connection();
     void onReadyRead();
     void erase_all_messages() const;
 

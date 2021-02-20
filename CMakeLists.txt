@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.17)
 project(ClientChatApp)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+
 
 set(QT_VERSION 5)
 set(REQUIRED_LIBS Core Gui Widgets Network)

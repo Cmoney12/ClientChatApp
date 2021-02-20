@@ -8,7 +8,6 @@
 #include <ctime>
 #include <iostream>
 
-
 #ifndef CLIENTCHATAPP_DATABASE_HANDLER_H
 #define CLIENTCHATAPP_DATABASE_HANDLER_H
 
@@ -72,31 +71,27 @@ public:
     int insert_message(const std::string& message) {
 
         rc = sqlite3_open("/home/coreylovette/CLionProjects/ClientChatApp/messanger_db.sqlite", &db);
-
+        //rc = sqlite3_open("messanger_db.sqlite", &db);
         if (rc != SQLITE_OK) {
 
             //fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
-            sqlite3_close(db);
 
             return 1;
         }
 
         std::string sql = "INSERT INTO Messages VALUES('" + message + "','" + get_current_datetime() +"')";
 
-
         rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
-
 
         if (rc != SQLITE_OK ) {
 
-            fprintf(stderr, "SQL error: %s\n", zErrMsg);
+            //fprintf(stderr, "SQL error: %s\n", zErrMsg);
 
-            sqlite3_free(zErrMsg);
             sqlite3_close(db);
 
             return 1;
         }
-
+        sqlite3_free(zErrMsg);
         sqlite3_close(db);
     }
 
