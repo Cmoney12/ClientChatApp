@@ -8,7 +8,9 @@
 #include <QTextEdit>
 #include <QMenu>
 #include <QListView>
+#include <QListWidget>
 #include "database_handler.h"
+#include "StringList.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -35,13 +37,16 @@ public:
     QPushButton *user_button;
     QMenuBar *menu;
     database_handler *data_handler;
+    StringList *stringList;
+    QString receiver;
 
 public slots:
     void connection();
     void sendMessage();
     void onReadyRead();
     void erase_all_messages() const;
-    void send_picture();
+    void add_user();
+    void set_recipient(QModelIndex index);
 
 private:
     Ui::MainWindow *ui;

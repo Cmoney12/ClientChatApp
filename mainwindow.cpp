@@ -12,8 +12,12 @@
 #include <QIcon>
 #include <QHBoxLayout>
 #include <QFileDialog>
-#include <fstream>
-#include <cstring>
+#include <QStringListModel>
+
+//you can use model->setData() method
+//
+//Or you can use model->setStringList(listePays) after listePays.append() method
+
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -36,17 +40,21 @@ MainWindow::MainWindow(QWidget *parent)
     erase_messages = new QMenu("Erase Messages");
     option_menu->addAction(tr("Erase Messages"));
     menu->addMenu(option_menu);
+
+
     username_view = new QListView;
+    stringList = new StringList;
+    username_view->setModel(stringList);
+
     left_widget->setLayout(leftlayout);
     rightwidget->setLayout(rightlayout);
-
 
     connect_button = new QPushButton("Connect");
     message_view = new QTextEdit;
     send_button = new QPushButton("Send");
     message_line = new QLineEdit;
 
-    QPixmap pixmap("/home/coreylovette/CLionProjects/ClientChatApp/picture_button.png");
+    QPixmap pixmap("/home/corey/CLionProjects/ClientChatApp/picture_button.png");
     QIcon ButtonIcon(pixmap);
     picture_button = new QPushButton();
     picture_button->setIcon(ButtonIcon);
@@ -54,7 +62,9 @@ MainWindow::MainWindow(QWidget *parent)
     leftlayout->addRow(username_view);
     rightlayout->addRow(connect_button);
     rightlayout->addRow(message_view);
+
     //**************************
+
     auto *hBoxLayout = new QHBoxLayout();
     hBoxLayout->addWidget(send_button);
     hBoxLayout->addWidget(picture_button);
@@ -66,15 +76,17 @@ MainWindow::MainWindow(QWidget *parent)
     splitter->addWidget(rightwidget);
     setCentralWidget(splitter);
     setMenuBar(menu);
-    data_handler = new database_handler;
+
+    auto current_directory = QCoreApplication::applicationDirPath();
+    data_handler = new database_handler(current_directory.toStdString());
 
     connect(connect_button, &QPushButton::clicked, this, &MainWindow::connection);
     connect(option_menu, SIGNAL(triggered(QAction*)), SLOT(erase_all_messages()));
     connect(send_button, &QPushButton::clicked, this, &MainWindow::sendMessage);
     connect(message_line, &QLineEdit::returnPressed, this, &MainWindow::sendMessage);
     connect(socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
-    connect(picture_button, &QPushButton::clicked, this, &MainWindow::send_picture);
-
+    connect(user_button, &QPushButton::clicked, this, &MainWindow::add_user);
+    connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
     QString header;
 
 }
@@ -105,48 +117,7 @@ void MainWindow::onReadyRead()
         //QString line = QString::fromUtf8(socket->readLine()).trimmed();
         QString line = socket->readLine();
         std::cout << line.toStdString();
-        //message_view->append(line);
-        //data_handler->insert_message(line.toStdString());
     }
-}
-
-void MainWindow::send_picture() {
-    QString fileName = QFileDialog::getOpenFileName(this,tr("Open Image"),
-                                                    "/home/jana", tr("Image Files (*.png *.jpg)"));
-    std::string file_name = fileName.toStdString();
-    std::ifstream stream;
-    std::ifstream file(file_name);
-    std::istream_iterator<char> begin(file), end;
-    std::vector<char> buffer(begin, end);
-    //std::copy(buffer.begin(), buffer.end(), std::ostream_iterator<char>(std::cout, ","));
-
-    //******************************************************
-    enum {HEADER_SIZE = 6};
-    std::ifstream DataFile(file_name, std::ios::binary);
-    if(!DataFile.good())
-
-    DataFile.seekg(0, std::ios::end);
-    size_t filesize = (int)DataFile.tellg();
-    DataFile.seekg(0);
-
-    char output[filesize + HEADER_SIZE];
-    //or std::vector
-    //or unsigned char *output = new unsigned char[filesize];
-    if(DataFile.read((char*)filesize, filesize))
-    {
-        std::ofstream fout(file_name, std::ios::binary);
-        if(!fout.good())
-        fout.write((char*)output, filesize);
-    }
-
-    char header[HEADER_SIZE + 1] = "";
-    std::sprintf(header, "%4d", static_cast<int>(filesize));
-    std::memcpy(output, header, HEADER_SIZE);
-
-    if (!fileName.isEmpty()) {
-        socket->write(output);
-    }
-
 }
 
 void MainWindow::erase_all_messages() const {
@@ -154,8 +125,19 @@ void MainWindow::erase_all_messages() const {
     message_view->clear();
 }
 
+void MainWindow::add_user() {
+    stringList->append(search_user_line->text());
+}
+
+void MainWindow::set_recipient(QModelIndex index) {
+    receiver = stringList->set_recipient(index);
+    std::cout << receiver.toStdString() << std::endl;
+}
+
+
 MainWindow::~MainWindow()
 {
+    delete stringList;
     delete data_handler;
     delete ui;
 }
