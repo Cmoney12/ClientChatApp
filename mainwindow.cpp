@@ -64,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
     rightlayout->addRow(connect_button);
     rightlayout->addRow(message_view);
 
-    //**************************
+    //************************************************************
 
     auto *hBoxLayout = new QHBoxLayout();
     hBoxLayout->addWidget(send_button);
@@ -77,6 +77,8 @@ MainWindow::MainWindow(QWidget *parent)
     splitter->addWidget(rightwidget);
     setCentralWidget(splitter);
     setMenuBar(menu);
+
+
 
     auto current_directory = QCoreApplication::applicationDirPath();
     data_handler = new database_handler(current_directory.toStdString());
@@ -121,11 +123,10 @@ void MainWindow::sendMessage() {
 
 void MainWindow::onReadyRead()
 {
-    chat_message msg;
     // We'll loop over every (complete) line of text that the server has sent us:
     QString line;
     line = QString::fromUtf8(socket->readAll());
-    line.remove(0,4);
+    line.remove(0,chat_message::header_length);
     message_view->append(line);
     data_handler->insert_message(line.toStdString());
     //while(socket->canReadLine()) {
