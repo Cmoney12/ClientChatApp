@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect_button = new QPushButton("Connect");
     message_view = new QTextEdit;
+    message_view->setReadOnly(true);
     send_button = new QPushButton("Send");
     message_line = new QLineEdit;
 
@@ -77,8 +78,6 @@ MainWindow::MainWindow(QWidget *parent)
     splitter->addWidget(rightwidget);
     setCentralWidget(splitter);
     setMenuBar(menu);
-
-
 
     auto current_directory = QCoreApplication::applicationDirPath();
     data_handler = new database_handler(current_directory.toStdString());
