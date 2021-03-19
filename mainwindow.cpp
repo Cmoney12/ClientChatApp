@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include "chat_message.hpp"
 #include <QFormLayout>
 #include <QTcpSocket>
 #include <QWidget>
@@ -11,8 +12,8 @@
 #include <QPixmap>
 #include <QIcon>
 #include <QHBoxLayout>
-#include <QFileDialog>
 #include <QStringListModel>
+
 
 //you can use model->setData() method
 //
@@ -87,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
     connect(user_button, &QPushButton::clicked, this, &MainWindow::add_user);
     connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
+
     QString header;
 
 }
@@ -99,11 +101,19 @@ void MainWindow::connection() {
 }
 
 void MainWindow::sendMessage() {
-    QString message = "text:"+ message_line->text() + "\n";
-    if(message.isEmpty()) {
+
+    chat_message msg;
+
+    std::string message = (message_line->text()).toStdString();
+    std::size_t len = message.length();
+    msg.body_length(len);
+    std::memcpy(msg.body(), message.c_str(), msg.body_length());
+    msg.encode_header();
+    if(message.empty()) {
         return;
     } else {
-        socket->write(QString(message + "\n").toUtf8());
+        //socket->write(QString(message).toUtf8());
+        socket->write((char *)msg.data(), msg.length());
     }
     message_line->clear();
 }
@@ -111,13 +121,22 @@ void MainWindow::sendMessage() {
 
 void MainWindow::onReadyRead()
 {
+    chat_message msg;
     // We'll loop over every (complete) line of text that the server has sent us:
-    while(socket->canReadLine()) {
+    QString line;
+    line = QString::fromUtf8(socket->readAll());
+    line.remove(0,4);
+    message_view->append(line);
+    data_handler->insert_message(line.toStdString());
+    //while(socket->canReadLine()) {
         // Here's the line the of text the server sent us (we use UTF-8 so
         //QString line = QString::fromUtf8(socket->readLine()).trimmed();
-        QString line = socket->readLine();
-        std::cout << line.toStdString();
-    }
+        //line += QString::fromUtf8(socket->readLine());
+        //std::cout << line.toStdString();
+
+    //}
+    //line.remove(0,3);
+
 }
 
 void MainWindow::erase_all_messages() const {

@@ -7,10 +7,12 @@
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QMenu>
+#include <iostream>
 #include <QListView>
 #include <QListWidget>
-#include "database_handler.h"
+#include "chat_message.hpp"
 #include "StringList.h"
+#include "database_handler.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

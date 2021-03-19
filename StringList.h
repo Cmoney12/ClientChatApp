@@ -17,7 +17,6 @@ public:
 
     QString set_recipient(QModelIndex index) {
         QString string = stringList().at(index.row());
-        std::cout << string.toStdString() << std::endl;
         return string;
     }
 

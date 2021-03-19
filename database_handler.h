@@ -44,7 +44,6 @@ public:
             std::string sql = "INSERT INTO Login VALUES('" + user_name + "','" + pass_word + "')";
             int exit = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
             sqlite3_free(zErrMsg);
-            sqlite3_close(db);
             if (exit != SQLITE_OK) {
                 sqlite3_close(db);
                 return true;
@@ -127,37 +126,38 @@ public:
         }
         sqlite3_free(zErrMsg);
     }
-
     std::string load_messages() {
         sqlite3_stmt *selectStmt;
-        char query[] = "SELECT message FROM Messages";
+        std::string query = "select message from Messages";
         std::string messages;
-        if (sqlite3_open(directory.c_str(), &db) == SQLITE_OK) {
-            if (sqlite3_prepare(db, query, -1, &selectStmt, nullptr) == SQLITE_OK) {
-                int ctotal = sqlite3_column_count(selectStmt);// Count the Number of Columns in the Table
-                int res;
-                while (true) {
-                    res = sqlite3_step(selectStmt); // Execute SQL Statement.
-                    if (res == SQLITE_ROW) {
-                        //sqlite3_finalize(selectStmt);
-                        for (int i = 0; i < ctotal; i++)  // Loop times the number of columns in the table
-                        {
-                            std::string s = (char *) sqlite3_column_text(selectStmt,
-                                                                         i);  // Read each Column in the row.
-                            // print or format the output as you want
-                            messages += s;
-                        }
-                        messages += "\n";
+        rc = sqlite3_open("/home/corey/CLionProjects/ClientChatApp/messanger_db.sqlite", &db);
+        if ( sqlite3_prepare(db, query.c_str(), -1, &selectStmt, 0 ) == SQLITE_OK )
+        {
+            int ctotal = sqlite3_column_count(selectStmt); // Count the Number of Columns in the Table
+            int res = 0;
+            while (true)
+            {
+                res = sqlite3_step(selectStmt); // Execute SQL Statement.
+                if ( res == SQLITE_ROW )
+                {
+                    //sqlite3_finalize(selectStmt);
+                    for ( int i = 0; i < ctotal; i++ )  // Loop times the number of columns in the table
+                    {
+                        std::string s = (char*)sqlite3_column_text(selectStmt, i);  // Read each Column in the row.
+                        // print or format the output as you want
+                        messages += s;
                     }
+                    messages+="\n";
+                }
 
-                    if (res == SQLITE_DONE || res == SQLITE_ERROR) {
-                        break;
-                    }
+                if ( res == SQLITE_DONE || res==SQLITE_ERROR)
+                {
+                    break;
                 }
             }
         }
-        sqlite3_close(db);
         sqlite3_finalize(selectStmt);
+        sqlite3_free(db);
         return messages;
     }
 
@@ -170,7 +170,7 @@ public:
     }
 
     void clear_messages() {
-        if (sqlite3_open(directory.c_str(), &db) == SQLITE_OK) {
+        if (sqlite3_open("/home/corey/CLionProjects/ClientChatApp/messanger_db.sqlite", &db) == SQLITE_OK) {
             std::string sql = "DELETE FROM Messages";
             rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
         }

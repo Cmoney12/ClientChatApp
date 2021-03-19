@@ -6,7 +6,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-
 set(QT_VERSION 5)
 set(REQUIRED_LIBS Core Gui Widgets Network)
 set(REQUIRED_LIBS_QUALIFIED Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network)
@@ -18,7 +17,7 @@ add_executable(${PROJECT_NAME}
         login.cpp
         login.h
         database_handler.h
-        mainwindow.ui StringList.h)
+        mainwindow.ui StringList.h chat_message.hpp)
 
 if (NOT CMAKE_PREFIX_PATH)
     message(WARNING "CMAKE_PREFIX_PATH is not defined, you may need to set it "
