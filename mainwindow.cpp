@@ -163,7 +163,7 @@ void MainWindow::add_user() const {
     stringList->append(search_user_line->text());
 }
 
-void MainWindow::set_recipient(QModelIndex index) {
+void MainWindow::set_recipient(QModelIndex index) const {
     QString receiver = stringList->set_recipient(index);
     std::cout << receiver.toStdString() << std::endl;
 }

@@ -24,10 +24,10 @@ class ListViewDelegate : public QAbstractItemDelegate
     int d_pointerheight;
     float d_widthfraction;
 public:
-    inline ListViewDelegate(QObject *parent = nullptr);
+    inline explicit ListViewDelegate(QObject *parent = nullptr);
 protected:
-    inline void paint(QPainter *painter, QStyleOptionViewItem const &option, QModelIndex const &index) const;
-    inline QSize sizeHint(QStyleOptionViewItem const &option, QModelIndex const &index) const;
+    inline void paint(QPainter *painter, QStyleOptionViewItem const &option, QModelIndex const &index) const override;
+    inline QSize sizeHint(QStyleOptionViewItem const &option, QModelIndex const &index) const override;
 };
 
 inline ListViewDelegate::ListViewDelegate(QObject *parent)

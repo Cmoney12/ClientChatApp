@@ -54,7 +54,7 @@ public slots:
     void onReadyRead();
     void erase_all_messages() const;
     void add_user() const;
-    void set_recipient(QModelIndex index);
+    void set_recipient(QModelIndex index) const;
 
 private:
     Ui::MainWindow *ui;
