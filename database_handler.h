@@ -178,6 +178,21 @@ public:
         sqlite3_free(zErrMsg);
     }
 
+    std::string get_username() {
+        std::string user_name;
+        if (sqlite3_open(directory.c_str(), &db) == SQLITE_OK) {
+
+            char sql[] = "SELECT username FROM Login";
+            struct sqlite3_stmt *selectstmt;
+            int result = sqlite3_prepare_v2(db, sql, -1, &selectstmt, nullptr);
+            if (result == SQLITE_OK) {
+                user_name = (char*)sqlite3_column_text(selectstmt, 1);
+            }
+        }
+        sqlite3_close(db);
+        return user_name;
+    }
+
 private:
     std::string directory;
     int rc{};

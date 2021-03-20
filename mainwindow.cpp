@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "chat_message.hpp"
+#include "ListViewDelegate.h"
 #include <QFormLayout>
 #include <QTcpSocket>
 #include <QWidget>
@@ -13,12 +14,6 @@
 #include <QIcon>
 #include <QHBoxLayout>
 #include <QStringListModel>
-
-
-//you can use model->setData() method
-//
-//Or you can use model->setStringList(listePays) after listePays.append() method
-
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -42,7 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
     option_menu->addAction(tr("Erase Messages"));
     menu->addMenu(option_menu);
 
-
     username_view = new QListView;
     stringList = new StringList;
     username_view->setModel(stringList);
@@ -51,8 +45,18 @@ MainWindow::MainWindow(QWidget *parent)
     rightwidget->setLayout(rightlayout);
 
     connect_button = new QPushButton("Connect");
-    message_view = new QTextEdit;
-    message_view->setReadOnly(true);
+    //*******************Message_View***************************
+    message_view = new QListView;
+    message_view->setResizeMode(QListView::Adjust);
+    message_view->setWordWrap(true);
+    message_view->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    message_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    message_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    message_view->setModel(&standard_model);
+    message_view->setMinimumSize(200,350);
+    message_view->setItemDelegate(new ListViewDelegate());
+
+    //*******************Message_View***************************
     send_button = new QPushButton("Send");
     message_line = new QLineEdit;
 
@@ -90,6 +94,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(user_button, &QPushButton::clicked, this, &MainWindow::add_user);
     connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
 
+    username = data_handler->get_username();
     QString header;
 
 }
@@ -97,7 +102,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::connection() {
     std::string messages = data_handler->load_messages();
     QString message = QString::fromUtf8(messages.c_str());
-    message_view->append(message);
+    //message_view->append(message);
     socket->connectToHost("127.0.0.1", 1234);
 }
 
@@ -116,9 +121,24 @@ void MainWindow::sendMessage() {
         //socket->write(QString(message).toUtf8());
         socket->write((char *)msg.data(), msg.length());
     }
+    append_sent(message_line->text());
+    //append_sent(QString::fromUtf8((char *)msg.data(), msg.body_length()));
+    //message_view->append(QString::fromUtf8((char *)msg.data(), msg.body_length()));
     message_line->clear();
 }
 
+void MainWindow::append_sent(const QString& message) {
+    //QString message = message_line->text();
+    auto *item1 = new QStandardItem(message);
+    item1->setData("Outgoing", Qt::UserRole + 1);
+    standard_model.appendRow(item1);
+}
+
+void MainWindow::append_received(const QString& message) {
+    auto *received_message = new QStandardItem(message);
+    received_message->setData("Incoming", Qt::UserRole + 1);
+    standard_model.appendRow(received_message);
+}
 
 void MainWindow::onReadyRead()
 {
@@ -126,8 +146,9 @@ void MainWindow::onReadyRead()
     QString line;
     line = QString::fromUtf8(socket->readAll());
     line.remove(0,chat_message::header_length);
-    message_view->append(line);
+    //message_view->append(line);
     data_handler->insert_message(line.toStdString());
+    append_received(line);
     //while(socket->canReadLine()) {
         // Here's the line the of text the server sent us (we use UTF-8 so
         //QString line = QString::fromUtf8(socket->readLine()).trimmed();
@@ -141,15 +162,15 @@ void MainWindow::onReadyRead()
 
 void MainWindow::erase_all_messages() const {
     data_handler->clear_messages();
-    message_view->clear();
+    //message_view->clear();
 }
 
-void MainWindow::add_user() {
+void MainWindow::add_user() const {
     stringList->append(search_user_line->text());
 }
 
 void MainWindow::set_recipient(QModelIndex index) {
-    receiver = stringList->set_recipient(index);
+    QString receiver = stringList->set_recipient(index);
     std::cout << receiver.toStdString() << std::endl;
 }
 

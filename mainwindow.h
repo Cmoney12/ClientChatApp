@@ -10,9 +10,11 @@
 #include <iostream>
 #include <QListView>
 #include <QListWidget>
+#include <QStandardItemModel>
 #include "chat_message.hpp"
 #include "StringList.h"
 #include "database_handler.h"
+#include "ListViewDelegate.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -28,7 +30,7 @@ public:
 
 public:
     QPushButton *connect_button;
-    QTextEdit *message_view;
+    QListView *message_view;
     QPushButton *send_button;
     QPushButton *picture_button;
     QLineEdit *message_line;
@@ -40,14 +42,18 @@ public:
     QMenuBar *menu;
     database_handler *data_handler;
     StringList *stringList;
-    QString receiver;
+    std::string username;
+    QStandardItemModel standard_model;
+    void append_sent(const QString& message);
+    void append_received(const QString& message);
+
 
 public slots:
     void connection();
     void sendMessage();
     void onReadyRead();
     void erase_all_messages() const;
-    void add_user();
+    void add_user() const;
     void set_recipient(QModelIndex index);
 
 private:

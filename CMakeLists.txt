@@ -17,7 +17,7 @@ add_executable(${PROJECT_NAME}
         login.cpp
         login.h
         database_handler.h
-        mainwindow.ui StringList.h chat_message.hpp)
+        mainwindow.ui StringList.h chat_message.hpp ListViewDelegate.h)
 
 if (NOT CMAKE_PREFIX_PATH)
     message(WARNING "CMAKE_PREFIX_PATH is not defined, you may need to set it "
