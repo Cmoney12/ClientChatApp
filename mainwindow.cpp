@@ -2,18 +2,9 @@
 #include "./ui_mainwindow.h"
 #include "chat_message.hpp"
 #include "ListViewDelegate.h"
-#include <QFormLayout>
-#include <QTcpSocket>
 #include <QWidget>
-#include <QHostAddress>
-#include <QString>
-#include <QThread>
-#include <QStringLiteral>
 #include <QSplitter>
-#include <QPixmap>
-#include <QIcon>
-#include <QHBoxLayout>
-#include <QStringListModel>
+#include <QFormLayout>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -37,12 +28,15 @@ MainWindow::MainWindow(QWidget *parent)
     option_menu->addAction(tr("Erase Messages"));
     menu->addMenu(option_menu);
 
+    //************Username Components*****************
+
     username_view = new QListView;
     stringList = new StringList;
     username_view->setModel(stringList);
-
     left_widget->setLayout(leftlayout);
     rightwidget->setLayout(rightlayout);
+
+    //******************************************
 
     connect_button = new QPushButton("Connect");
     //*******************Message_View***************************
@@ -53,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
     message_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     message_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     message_view->setModel(&standard_model);
-    message_view->setMinimumSize(200,350);
+    message_view->setMinimumSize(300,350);
     message_view->setItemDelegate(new ListViewDelegate());
 
     //*******************Message_View***************************

@@ -12,14 +12,20 @@ login::login(QWidget *parent): QMainWindow(parent)
 {
     auto *widget = new QWidget;
     auto *layout = new QFormLayout;
+    title = new QLabel("Vega Messenger");
+    title->setFont(QFont("Arial", 24));
+    title->setStyleSheet("QLabel {color: rgb(8, 50, 201); }");
     username_line = new QLineEdit;
     password_line = new QLineEdit;
     username_label = new QLabel("Username: ");
+    username_label->setStyleSheet("QLabel {color: rgb(8, 50, 201); }");
     password_label = new QLabel("Password: ");
+    password_label->setStyleSheet("QLabel {color : rgb(8, 50, 201); }");
     login_button = new QPushButton("Login");
     register_button = new QPushButton("Register");
     widget->setLayout(layout);
 
+    layout->addWidget(title);
     layout->addRow(username_label, username_line);
     layout->addRow(password_label, password_line);
     layout->addWidget(login_button);
