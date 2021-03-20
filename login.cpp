@@ -13,6 +13,11 @@ login::login(QWidget *parent): QMainWindow(parent)
     auto *widget = new QWidget;
     auto *layout = new QFormLayout;
 
+    pic_label = new QLabel;
+    QPixmap pixmap("/home/corey/CLionProjects/ClientChatApp/vega3.png");
+    pic_label->setPixmap(pixmap);
+    //pic_label->setMask(pixmap.mask());
+
     username_line = new QLineEdit;
     password_line = new QLineEdit;
     username_label = new QLabel("Username: ");
@@ -24,7 +29,7 @@ login::login(QWidget *parent): QMainWindow(parent)
 
     widget->setLayout(layout);
 
-
+    layout->addWidget(pic_label);
     layout->addRow(username_label, username_line);
     layout->addRow(password_label, password_line);
     layout->addWidget(login_button);

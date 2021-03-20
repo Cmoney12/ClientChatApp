@@ -14,6 +14,7 @@ public:
     explicit login(QWidget *parent = nullptr);
     ~login() override;
 public:
+    QLabel *pic_label;
     QPushButton *login_button;
     QLineEdit *username_line;
     QPushButton *register_button;
