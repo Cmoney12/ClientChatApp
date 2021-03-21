@@ -111,13 +111,14 @@ public:
         sqlite3_free(zErrMsg);
     }
 
-    int insert_message(const std::string& message) {
+    int insert_message(const std::string& deliverer, const std::string& recipient, const std::string& message) {
         if (rc != SQLITE_OK) {
             //fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
             return 0;
         }
 
-        std::string sql = "INSERT INTO Messages VALUES('" + message + "','" + get_current_datetime() +"')";
+        std::string sql = "INSERT INTO Messages VALUES('" + deliverer + "','" + recipient +  "','" +
+                message + "','" + get_current_datetime() +"')";
 
         rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
 

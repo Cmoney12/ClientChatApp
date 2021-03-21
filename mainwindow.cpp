@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
 
     username = data_handler->get_username();
-    QString header;
+    //receiver = "";
 
 }
 
@@ -98,26 +98,31 @@ void MainWindow::connection() {
     QString message = QString::fromUtf8(messages.c_str());
     //message_view->append(message);
     socket->connectToHost("127.0.0.1", 1234);
+
+    QString username_message = QString::fromUtf8(username.c_str()) + "\n";
+    socket->write(QString(username_message).toUtf8());
 }
 
 void MainWindow::sendMessage() {
 
     chat_message msg;
 
-    std::string message = (message_line->text()).toStdString();
-    std::size_t len = message.length();
-    msg.body_length(len);
-    std::memcpy(msg.body(), message.c_str(), msg.body_length());
+    std::string body = (message_line->text()).toStdString();
+    msg.create_tree(username, receiver.toStdString(), body);
+    std::string json = msg.write_json();
+    msg.body_length(json.length());
+    std::memcpy(msg.body(), json.c_str(), msg.body_length());
     msg.encode_header();
-    if(message.empty()) {
+
+    if(std::strlen(msg.data()) == 0) {
         return;
     } else {
         //socket->write(QString(message).toUtf8());
         socket->write((char *)msg.data(), msg.length());
+        data_handler->insert_message(username, receiver.toStdString(), body);
     }
+
     append_sent(message_line->text());
-    //append_sent(QString::fromUtf8((char *)msg.data(), msg.body_length()));
-    //message_view->append(QString::fromUtf8((char *)msg.data(), msg.body_length()));
     message_line->clear();
 }
 
@@ -134,24 +139,21 @@ void MainWindow::append_received(const QString& message) {
     standard_model.appendRow(received_message);
 }
 
-void MainWindow::onReadyRead()
-{
-    // We'll loop over every (complete) line of text that the server has sent us:
+void MainWindow::onReadyRead() {
+
     QString line;
     line = QString::fromUtf8(socket->readAll());
-    line.remove(0,chat_message::header_length);
+    line.remove(0,chat_message::HEADER_SIZE);
     //message_view->append(line);
-    data_handler->insert_message(line.toStdString());
+    data_handler->insert_message(receiver.toStdString(), username, line.toStdString());
     append_received(line);
     //while(socket->canReadLine()) {
         // Here's the line the of text the server sent us (we use UTF-8 so
         //QString line = QString::fromUtf8(socket->readLine()).trimmed();
         //line += QString::fromUtf8(socket->readLine());
         //std::cout << line.toStdString();
-
     //}
     //line.remove(0,3);
-
 }
 
 void MainWindow::erase_all_messages() const {
@@ -163,9 +165,9 @@ void MainWindow::add_user() const {
     stringList->append(search_user_line->text());
 }
 
-void MainWindow::set_recipient(QModelIndex index) const {
-    QString receiver = stringList->set_recipient(index);
-    std::cout << receiver.toStdString() << std::endl;
+void MainWindow::set_recipient(QModelIndex index) {
+    receiver = stringList->set_recipient(index);
+    //std::cout << receiver << std::endl;
 }
 
 

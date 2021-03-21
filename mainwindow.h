@@ -44,6 +44,7 @@ public:
     StringList *stringList;
     std::string username;
     QStandardItemModel standard_model;
+    QString receiver;
     void append_sent(const QString& message);
     void append_received(const QString& message);
 
@@ -54,7 +55,7 @@ public slots:
     void onReadyRead();
     void erase_all_messages() const;
     void add_user() const;
-    void set_recipient(QModelIndex index) const;
+    void set_recipient(QModelIndex index);
 
 private:
     Ui::MainWindow *ui;
