@@ -20,6 +20,7 @@ login::login(QWidget *parent): QMainWindow(parent)
 
     username_line = new QLineEdit;
     password_line = new QLineEdit;
+    password_line->setEchoMode(QLineEdit::Password);
     username_label = new QLabel("Username: ");
     username_label->setStyleSheet("QLabel {color: rgb(8, 50, 201); }");
     password_label = new QLabel("Password: ");
