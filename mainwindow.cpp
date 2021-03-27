@@ -109,7 +109,7 @@ void MainWindow::connection() {
     }
 
     //Connect to host
-    socket->connectToHost("127.0.0.1", 1234);
+    //socket->connectToHost("127.0.0.1", 1234);
 
     //send username to server
     //QString username_message = QString::fromUtf8(username.c_str()) + "\n";
@@ -215,8 +215,16 @@ void MainWindow::add_user() const {
 }
 
 void MainWindow::set_recipient(QModelIndex index) {
+    //sets recipient of the message and changes messages
     receiver = stringList->set_recipient(index);
-    std::cout << receiver.toStdString() << std::endl;
+    std::string messages = data_handler->get_messages(receiver.toStdString());
+    std::map<std::string, std::string> message_list = simple_tokenizer(messages);
+    for(const auto& msg: message_list) {
+        if (msg.first == username)
+            append_received(QString::fromUtf8(msg.second.c_str()));
+        else
+            append_sent(QString::fromUtf8(msg.second.c_str()));
+    }
 }
 
 
