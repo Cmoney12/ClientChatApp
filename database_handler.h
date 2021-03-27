@@ -15,7 +15,7 @@ class database_handler {
 public:
 
     explicit database_handler(const std::string& current_directory) {
-        directory = current_directory + "/messanger_db.sqlite";;
+        directory = current_directory + "/messanger_db.sqlite";
 
     }
 
@@ -133,7 +133,7 @@ public:
         //std::string query = "select message from Messages";
         std::string messages;
         rc = sqlite3_open("/home/corey/CLionProjects/ClientChatApp/messanger_db.sqlite", &db);
-        if ( sqlite3_prepare(db, query.c_str(), -1, &selectStmt, 0 ) == SQLITE_OK )
+        if ( sqlite3_prepare(db, query.c_str(), -1, &selectStmt, nullptr ) == SQLITE_OK )
         {
             int ctotal = sqlite3_column_count(selectStmt); // Count the Number of Columns in the Table
             int res = 0;
@@ -185,10 +185,10 @@ public:
 
         char query[] = "SELECT username FROM Login";
         struct sqlite3_stmt *selectStmt;
-        if ( sqlite3_prepare(db, query, -1, &selectStmt, 0 ) == SQLITE_OK )
+        if ( sqlite3_prepare(db, query, -1, &selectStmt, nullptr ) == SQLITE_OK )
         {
             int ctotal = sqlite3_column_count(selectStmt); // Count the Number of Columns in the Table
-            int res = 0;
+            int res;
             while (true)
             {
                 res = sqlite3_step(selectStmt); // Execute SQL Statement.
@@ -201,7 +201,6 @@ public:
                         // print or format the output as you want
                         user_name += s;
                     }
-                    //messages+="\n";
                 }
 
                 if ( res == SQLITE_DONE || res==SQLITE_ERROR)

@@ -217,7 +217,6 @@ void MainWindow::add_user() const {
 void MainWindow::set_recipient(QModelIndex index) {
     receiver = stringList->set_recipient(index);
     std::cout << receiver.toStdString() << std::endl;
-    //std::cout << receiver << std::endl;
 }
 
 
