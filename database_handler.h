@@ -129,7 +129,8 @@ public:
     }
     std::string load_messages() {
         sqlite3_stmt *selectStmt;
-        std::string query = "select message from Messages";
+        std::string query = "select recipient, message from Messages";
+        //std::string query = "select message from Messages";
         std::string messages;
         rc = sqlite3_open("/home/corey/CLionProjects/ClientChatApp/messanger_db.sqlite", &db);
         if ( sqlite3_prepare(db, query.c_str(), -1, &selectStmt, 0 ) == SQLITE_OK )
@@ -146,7 +147,7 @@ public:
                     {
                         std::string s = (char*)sqlite3_column_text(selectStmt, i);  // Read each Column in the row.
                         // print or format the output as you want
-                        messages += s;
+                        messages += s + ": ";
                     }
                     messages+="\n";
                 }
@@ -181,15 +182,18 @@ public:
 
     std::string get_username() {
         std::string user_name;
-        if (sqlite3_open(directory.c_str(), &db) == SQLITE_OK) {
 
-            char sql[] = "SELECT username FROM Login";
-            struct sqlite3_stmt *selectstmt;
-            int result = sqlite3_prepare_v2(db, sql, -1, &selectstmt, nullptr);
-            if (result == SQLITE_OK) {
-                user_name = (char*)sqlite3_column_text(selectstmt, 1);
+        char sql[] = "SELECT username FROM Login";
+        struct sqlite3_stmt *selectstmt;
+        if (sqlite3_open("/home/corey/CLionProjects/sql/messanger_db.sqlite", &db) == SQLITE_OK) {
+            int ctotal = sqlite3_column_count(selectstmt);
+            if (sqlite3_prepare(db, sql, -1, &selectstmt, 0) == SQLITE_OK) {
+
+                if (sqlite3_step(selectstmt) == SQLITE_ROW)
+                    user_name = (char *)sqlite3_column_text(selectstmt, ctotal);
             }
         }
+        sqlite3_finalize(selectstmt);
         sqlite3_close(db);
         return user_name;
     }

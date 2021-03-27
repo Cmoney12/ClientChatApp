@@ -89,40 +89,56 @@ MainWindow::MainWindow(QWidget *parent)
     connect(user_button, &QPushButton::clicked, this, &MainWindow::add_user);
     connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
 
-    username = data_handler->get_username();
+    //uusername = data_handler->get_username();
     receiver = "";
 
 }
 
 void MainWindow::connection() {
     std::string messages = data_handler->load_messages();
-    //QString message = QString::fromUtf8(messages.c_str());
-    std::list<std::string> message_list = simple_tokenizer(messages);
+    std::map<std::string, std::string> message_list = simple_tokenizer(messages);
     for(const auto& msg: message_list) {
-        append_sent(QString::fromUtf8(msg.c_str()));
+        if (msg.first == "user")
+            append_received(QString::fromUtf8(msg.second.c_str()));
+        else
+            append_sent(QString::fromUtf8(msg.second.c_str()));
     }
-    //message_view->append(message)
+
 
     //Connect to host
     socket->connectToHost("127.0.0.1", 1234);
 
     //send username to server
-    QString username_message = QString::fromUtf8(username.c_str()) + "\n";
-    socket->write(QString(username_message).toUtf8());
+    //QString username_message = QString::fromUtf8(username.c_str()) + "\n";
+    //socket->write(QString(username_message).toUtf8());
 }
 
-std::list<std::string> MainWindow::simple_tokenizer(const std::string& messages)
+std::map<std::string, std::string> MainWindow::simple_tokenizer(const std::string& messages)
 {
-    std::stringstream ss(messages);
-    std::string message;
-    std::list<std::string> stringlist;
+    std::stringstream iss(messages);
+    std::string key, val;
+    std::map<std::string, std::string> stringmap;
     if (!messages.empty())
     {
-        while(std::getline(ss, message,'\n')) {
-            stringlist.push_back(message);
+        std::string::size_type key_pos = 0;
+        std::string::size_type key_end;
+        std::string::size_type val_pos;
+        std::string::size_type val_end;
+
+        while((key_end = messages.find(':', key_pos)) != std::string::npos)
+        {
+            if((val_pos = messages.find_first_not_of(": ", key_end)) == std::string::npos)
+                break;
+
+            val_end = messages.find('\n', val_pos);
+            stringmap.emplace(messages.substr(key_pos, key_end - key_pos), messages.substr(val_pos, val_end - val_pos));
+
+            key_pos = val_end;
+            if(key_pos != std::string::npos)
+                ++key_pos;
         }
     }
-    return stringlist;
+    return stringmap;
 }
 
 void MainWindow::sendMessage() {
@@ -164,11 +180,19 @@ void MainWindow::append_received(const QString& message) {
 void MainWindow::onReadyRead() {
 
     QString line;
+    chat_message message;
+
     line = QString::fromUtf8(socket->readAll());
-    line.remove(0,chat_message::HEADER_SIZE);
-    //message_view->append(line);
-    data_handler->insert_message(receiver.toStdString(), username, line.toStdString());
-    append_received(line);
+    try {
+        int pos = (line.toStdString()).find('{');
+        std::string body = line.toStdString().substr(pos);
+        std::vector<std::string>json_contents = message.read_json(body);
+        data_handler->insert_message(json_contents[1], json_contents[0], json_contents[2]);
+        append_received(QString::fromUtf8(json_contents[2].c_str()));
+    }
+    catch (std::out_of_range& exception) {
+        throw exception;
+    }
     //while(socket->canReadLine()) {
         // Here's the line the of text the server sent us (we use UTF-8 so
         //QString line = QString::fromUtf8(socket->readLine()).trimmed();

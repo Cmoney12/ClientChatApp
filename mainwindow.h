@@ -11,6 +11,7 @@
 #include <QListView>
 #include <QListWidget>
 #include <QStandardItemModel>
+#include <map>
 #include "chat_message.hpp"
 #include "StringList.h"
 #include "database_handler.h"
@@ -47,7 +48,7 @@ public:
     QString receiver;
     void append_sent(const QString& message);
     void append_received(const QString& message);
-    static std::list<std::string> simple_tokenizer(const std::string& s);
+    static std::map<std::string, std::string> simple_tokenizer(const std::string& s);
 
 
 public slots:

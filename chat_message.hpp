@@ -86,10 +86,19 @@ public:
     }
 
 
-    void read_json() {
-        std::istringstream is(data_);
+    std::vector<std::string> read_json(std::string& message) {
+        std::istringstream is(message);
         pt::read_json(is, root);
-        std::cout << root.get<std::string>("Header.To") << std::endl;
+        std::string to = root.get<std::string>("Header.To");
+        std::string from = root.get<std::string>("Header.From");
+        std::string content = root.get<std::string>("Contents.Body");
+
+        std::vector<std::string> parsed_json;
+        parsed_json.push_back(to);
+        parsed_json.push_back(from);
+        parsed_json.push_back(content);
+        return parsed_json;
+        //std::cout << root.get<std::string>("Header.To") << std::endl;
     }
 
 
