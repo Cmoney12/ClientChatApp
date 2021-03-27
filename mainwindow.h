@@ -47,6 +47,7 @@ public:
     QString receiver;
     void append_sent(const QString& message);
     void append_received(const QString& message);
+    static std::list<std::string> simple_tokenizer(const std::string& s);
 
 
 public slots:

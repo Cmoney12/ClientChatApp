@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QSplitter>
 #include <QFormLayout>
+#include <list>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -89,18 +90,39 @@ MainWindow::MainWindow(QWidget *parent)
     connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
 
     username = data_handler->get_username();
-    //receiver = "";
+    receiver = "";
 
 }
 
 void MainWindow::connection() {
     std::string messages = data_handler->load_messages();
-    QString message = QString::fromUtf8(messages.c_str());
-    //message_view->append(message);
+    //QString message = QString::fromUtf8(messages.c_str());
+    std::list<std::string> message_list = simple_tokenizer(messages);
+    for(const auto& msg: message_list) {
+        append_sent(QString::fromUtf8(msg.c_str()));
+    }
+    //message_view->append(message)
+
+    //Connect to host
     socket->connectToHost("127.0.0.1", 1234);
 
+    //send username to server
     QString username_message = QString::fromUtf8(username.c_str()) + "\n";
     socket->write(QString(username_message).toUtf8());
+}
+
+std::list<std::string> MainWindow::simple_tokenizer(const std::string& messages)
+{
+    std::stringstream ss(messages);
+    std::string message;
+    std::list<std::string> stringlist;
+    if (!messages.empty())
+    {
+        while(std::getline(ss, message,'\n')) {
+            stringlist.push_back(message);
+        }
+    }
+    return stringlist;
 }
 
 void MainWindow::sendMessage() {
@@ -167,6 +189,7 @@ void MainWindow::add_user() const {
 
 void MainWindow::set_recipient(QModelIndex index) {
     receiver = stringList->set_recipient(index);
+    std::cout << receiver.toStdString() << std::endl;
     //std::cout << receiver << std::endl;
 }
 

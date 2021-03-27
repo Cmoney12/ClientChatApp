@@ -62,8 +62,8 @@ void login::on_login() {
 void login::register_user() {
     std::string username = (username_line->text()).toStdString();
     std::string password = (password_line->text()).toStdString();
-    bool registeration = data_handler->register_user(username, password);
-    if (registeration) {
+    bool registration = data_handler->register_user(username, password);
+    if (registration) {
         QMessageBox::warning(this, "Registered Successfully", "Please login to continue");
     }
     else {
