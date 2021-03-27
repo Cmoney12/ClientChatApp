@@ -98,7 +98,6 @@ public:
         parsed_json.push_back(from);
         parsed_json.push_back(content);
         return parsed_json;
-        //std::cout << root.get<std::string>("Header.To") << std::endl;
     }
 
 

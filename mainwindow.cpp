@@ -23,7 +23,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     menu = new QMenuBar;
     search_user_line = new QLineEdit;
-    user_button = new QPushButton("Add");
+    user_button = new QPushButton("+");
+    erase_user = new QPushButton("-");
     option_menu = new QMenu("Options");
     erase_messages = new QMenu("Erase Messages");
     option_menu->addAction(tr("Erase Messages"));
@@ -59,7 +60,8 @@ MainWindow::MainWindow(QWidget *parent)
     QIcon ButtonIcon(pixmap);
     picture_button = new QPushButton();
     picture_button->setIcon(ButtonIcon);
-    leftlayout->addRow(user_button, search_user_line);
+    leftlayout->addRow(search_user_line, user_button);
+    leftlayout->addWidget(erase_user);
     leftlayout->addRow(username_view);
     rightlayout->addRow(connect_button);
     rightlayout->addRow(message_view);
@@ -88,8 +90,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
     connect(user_button, &QPushButton::clicked, this, &MainWindow::add_user);
     connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
+    connect(erase_user, &QPushButton::clicked, this, &MainWindow::erase_user_messages);
 
-    //uusername = data_handler->get_username();
+    username = data_handler->get_username();
+
     receiver = "";
 
 }
@@ -103,7 +107,6 @@ void MainWindow::connection() {
         else
             append_sent(QString::fromUtf8(msg.second.c_str()));
     }
-
 
     //Connect to host
     socket->connectToHost("127.0.0.1", 1234);
@@ -183,28 +186,28 @@ void MainWindow::onReadyRead() {
     chat_message message;
 
     line = QString::fromUtf8(socket->readAll());
-    try {
-        int pos = (line.toStdString()).find('{');
-        std::string body = line.toStdString().substr(pos);
-        std::vector<std::string>json_contents = message.read_json(body);
-        data_handler->insert_message(json_contents[1], json_contents[0], json_contents[2]);
-        append_received(QString::fromUtf8(json_contents[2].c_str()));
+    if (!line.isEmpty()) {
+        try {
+            int pos = (line.toStdString()).find('{');
+            std::string body = line.toStdString().substr(pos);
+            std::vector<std::string> json_contents = message.read_json(body);
+            data_handler->insert_message(json_contents[1], json_contents[0], json_contents[2]);
+            append_received(QString::fromUtf8(json_contents[2].c_str()));
+        }
+        catch (std::out_of_range &exception) {
+            throw exception;
+        }
     }
-    catch (std::out_of_range& exception) {
-        throw exception;
-    }
-    //while(socket->canReadLine()) {
-        // Here's the line the of text the server sent us (we use UTF-8 so
-        //QString line = QString::fromUtf8(socket->readLine()).trimmed();
-        //line += QString::fromUtf8(socket->readLine());
-        //std::cout << line.toStdString();
-    //}
-    //line.remove(0,3);
 }
 
-void MainWindow::erase_all_messages() const {
+void MainWindow::erase_user_messages() {
+    stringList->delete_user(username_view->currentIndex());
+    standard_model.clear();
+}
+
+void MainWindow::erase_all_messages() {
     data_handler->clear_messages();
-    //message_view->clear();
+    standard_model.clear();
 }
 
 void MainWindow::add_user() const {

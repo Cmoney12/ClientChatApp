@@ -183,17 +183,34 @@ public:
     std::string get_username() {
         std::string user_name;
 
-        char sql[] = "SELECT username FROM Login";
-        struct sqlite3_stmt *selectstmt;
-        if (sqlite3_open("/home/corey/CLionProjects/sql/messanger_db.sqlite", &db) == SQLITE_OK) {
-            int ctotal = sqlite3_column_count(selectstmt);
-            if (sqlite3_prepare(db, sql, -1, &selectstmt, 0) == SQLITE_OK) {
+        char query[] = "SELECT username FROM Login";
+        struct sqlite3_stmt *selectStmt;
+        if ( sqlite3_prepare(db, query, -1, &selectStmt, 0 ) == SQLITE_OK )
+        {
+            int ctotal = sqlite3_column_count(selectStmt); // Count the Number of Columns in the Table
+            int res = 0;
+            while (true)
+            {
+                res = sqlite3_step(selectStmt); // Execute SQL Statement.
+                if ( res == SQLITE_ROW )
+                {
+                    //sqlite3_finalize(selectStmt);
+                    for ( int i = 0; i < ctotal; i++ )  // Loop times the number of columns in the table
+                    {
+                        std::string s = (char*)sqlite3_column_text(selectStmt, i);  // Read each Column in the row.
+                        // print or format the output as you want
+                        user_name += s;
+                    }
+                    //messages+="\n";
+                }
 
-                if (sqlite3_step(selectstmt) == SQLITE_ROW)
-                    user_name = (char *)sqlite3_column_text(selectstmt, ctotal);
+                if ( res == SQLITE_DONE || res==SQLITE_ERROR)
+                {
+                    break;
+                }
             }
         }
-        sqlite3_finalize(selectstmt);
+        sqlite3_finalize(selectStmt);
         sqlite3_close(db);
         return user_name;
     }

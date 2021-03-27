@@ -20,6 +20,12 @@ public:
         return string;
     }
 
+    void delete_user(const QModelIndex& index) {
+        if (!index.isValid() || index.row() >= stringList().size())
+            return;
+        removeRows(index.row(), 1);
+    }
+
     StringList& operator<<(const QString& string){
         append(string);
         return *this;

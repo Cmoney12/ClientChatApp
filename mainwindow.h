@@ -34,6 +34,7 @@ public:
     QListView *message_view;
     QPushButton *send_button;
     QPushButton *picture_button;
+    QPushButton *erase_user;
     QLineEdit *message_line;
     QMenu *option_menu;
     QMenu *erase_messages;
@@ -55,9 +56,10 @@ public slots:
     void connection();
     void sendMessage();
     void onReadyRead();
-    void erase_all_messages() const;
+    void erase_all_messages();
     void add_user() const;
     void set_recipient(QModelIndex index);
+    void erase_user_messages();
 
 private:
     Ui::MainWindow *ui;
