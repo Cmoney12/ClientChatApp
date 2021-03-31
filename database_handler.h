@@ -27,7 +27,7 @@ public:
         return is_open;
     }
 
-    bool disconnect() {
+    void disconnect() {
         if(is_open) {
             sqlite3_close(db);
             is_open = false;
@@ -113,7 +113,7 @@ public:
 
     void create_message_table() {
         if (connect()) {
-            char create_table[] = "CREATE TABLE Messages (message text, timesent text)";
+            char create_table[] = "CREATE TABLE Messages ( deliverer TEXT, recipient TEXT, message TEXT, datetime  TEXT);";
             rc = sqlite3_exec(db, create_table, nullptr, nullptr, &zErrMsg);
         }
         sqlite3_close(db);
@@ -121,10 +121,12 @@ public:
     }
 
     void create_login_table() {
-        char create_table[] = "CREATE TABLE Login (username TEXT, password TEXT)";
-
-        rc = sqlite3_exec(db, create_table, nullptr, nullptr, &zErrMsg);
+        if (connect()) {
+            char create_table[] = "CREATE TABLE Login (username TEXT, password TEXT)";
+            rc = sqlite3_exec(db, create_table, nullptr, nullptr, &zErrMsg);
+        }
         sqlite3_free(zErrMsg);
+        sqlite3_close(db);
     }
 
     int insert_message(const std::string& deliverer, const std::string& recipient, const std::string& message) {
@@ -160,9 +162,13 @@ public:
                             std::string s = (char *) sqlite3_column_text(selectStmt,
                                                                          i);  // Read each Column in the row.
                             // print or format the output as you want
-                            messages += s + ": ";
+                            if (i % 2 == 0) {
+                                messages += s + ":";
+                            } else {
+                                messages += s + "\n";
+                            }
                         }
-                        messages += "\n";
+                        //messages += "\n";
                     }
 
                     if (res == SQLITE_DONE || res == SQLITE_ERROR) {
@@ -211,9 +217,12 @@ public:
                             std::string s = (char *) sqlite3_column_text(selectStmt,
                                                                          i);  // Read each Column in the row.
                             // print or format the output as you want
-                            messages += s + ": ";
+                            if (i % 2 == 0) {
+                                messages += s + "\n";
+                            } else {
+                                messages += s + ":";
+                            }
                         }
-                        messages += "\n";
                     }
 
                     if (res == SQLITE_DONE || res == SQLITE_ERROR) {

@@ -49,7 +49,7 @@ public:
     QString receiver;
     void append_sent(const QString& message);
     void append_received(const QString& message);
-    static std::map<std::string, std::string> simple_tokenizer(const std::string& s);
+    static std::vector<std::pair<std::string, std::string>> simple_tokenizer(const std::string& s);
 
 
 public slots:
@@ -60,6 +60,7 @@ public slots:
     void add_user() const;
     void set_recipient(QModelIndex index);
     void erase_user_messages();
+    void send_picture();
 
 private:
     Ui::MainWindow *ui;

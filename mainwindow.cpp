@@ -6,6 +6,7 @@
 #include <QSplitter>
 #include <QFormLayout>
 #include <list>
+#include <QFileDialog>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -49,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     message_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     message_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     message_view->setModel(&standard_model);
-    message_view->setMinimumSize(300,350);
+    message_view->setMinimumSize(400,450);
     message_view->setItemDelegate(new ListViewDelegate());
 
     //*******************Message_View***************************
@@ -91,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(user_button, &QPushButton::clicked, this, &MainWindow::add_user);
     connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
     connect(erase_user, &QPushButton::clicked, this, &MainWindow::erase_user_messages);
+    connect(picture_button, &QPushButton::clicked, this, &MainWindow::send_picture);
 
     username = data_handler->get_username();
 
@@ -100,7 +102,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::connection() {
     std::string messages = data_handler->load_messages();
-    std::map<std::string, std::string> message_list = simple_tokenizer(messages);
+    std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
     for(const auto& msg: message_list) {
         if (msg.first == "user")
             append_received(QString::fromUtf8(msg.second.c_str()));
@@ -109,20 +111,17 @@ void MainWindow::connection() {
     }
 
     //Connect to host
-    //socket->connectToHost("127.0.0.1", 1234);
+    socket->connectToHost("127.0.0.1", 1234);
 
     //send username to server
-    //QString username_message = QString::fromUtf8(username.c_str()) + "\n";
-    //socket->write(QString(username_message).toUtf8());
+    QString username_message = QString::fromUtf8(username.c_str()) + "\n";
+    socket->write(QString(username_message).toUtf8());
 }
 
-std::map<std::string, std::string> MainWindow::simple_tokenizer(const std::string& messages)
+std::vector<std::pair<std::string, std::string>> MainWindow::simple_tokenizer(const std::string& messages)
 {
-    std::stringstream iss(messages);
-    std::string key, val;
-    std::map<std::string, std::string> stringmap;
-    if (!messages.empty())
-    {
+    std::vector<std::pair<std::string, std::string>> message_list;
+    if (!messages.empty()) {
         std::string::size_type key_pos = 0;
         std::string::size_type key_end;
         std::string::size_type val_pos;
@@ -134,14 +133,26 @@ std::map<std::string, std::string> MainWindow::simple_tokenizer(const std::strin
                 break;
 
             val_end = messages.find('\n', val_pos);
-            stringmap.emplace(messages.substr(key_pos, key_end - key_pos), messages.substr(val_pos, val_end - val_pos));
+            message_list.emplace_back(messages.substr(key_pos, key_end - key_pos), messages.substr(val_pos, val_end - val_pos));
 
             key_pos = val_end;
             if(key_pos != std::string::npos)
                 ++key_pos;
         }
+
     }
-    return stringmap;
+
+        return message_list;
+}
+
+void MainWindow::send_picture() {
+    QString fileName = QFileDialog::getOpenFileName(
+            this,tr("Open Image"), "/home/", tr("Image Files (*.png *.jpg *.bmp)"));
+    auto *item = new QStandardItem(fileName);
+    item->setData("Picture",Qt::UserRole + 1);
+    standard_model.appendRow(item);
+    //pic_label->setPixmap(pixmap);
+
 }
 
 void MainWindow::sendMessage() {
@@ -172,6 +183,7 @@ void MainWindow::append_sent(const QString& message) {
     auto *item1 = new QStandardItem(message);
     item1->setData("Outgoing", Qt::UserRole + 1);
     standard_model.appendRow(item1);
+
 }
 
 void MainWindow::append_received(const QString& message) {
@@ -218,7 +230,7 @@ void MainWindow::set_recipient(QModelIndex index) {
     //sets recipient of the message and changes messages
     receiver = stringList->set_recipient(index);
     std::string messages = data_handler->get_messages(receiver.toStdString());
-    std::map<std::string, std::string> message_list = simple_tokenizer(messages);
+    std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
     for(const auto& msg: message_list) {
         if (msg.first == username)
             append_received(QString::fromUtf8(msg.second.c_str()));

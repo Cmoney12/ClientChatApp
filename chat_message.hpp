@@ -115,9 +115,10 @@ public:
     }
 
     void create_tree(const std::string& receiver, const std::string& deliverer,
-                     const std::string& body ="") {
+                     const std::string& body ="", std::string type="") {
         root.put("Header.To", receiver);
         root.put("Header.From", deliverer);
+        root.put("Contents.Type", type);
         //root.put("Header.Type", type_info);
         root.put("Contents.Body", body);
     }

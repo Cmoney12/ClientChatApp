@@ -47,118 +47,158 @@ inline ListViewDelegate::ListViewDelegate(QObject *parent)
 
 inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem const &option, QModelIndex const &index) const
 {
-    QTextDocument bodydoc;
-    QTextOption textOption(bodydoc.defaultTextOption());
-    textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
-    bodydoc.setDefaultTextOption(textOption);
-    bodydoc.setDefaultFont(QFont("Roboto", 12));
-    QString bodytext(index.data(Qt::DisplayRole).toString());
-    bodydoc.setHtml(bodytext);
 
-    qreal contentswidth = option.rect.width() * d_widthfraction - d_horizontalmargin - d_pointerwidth - d_leftpadding - d_rightpadding;
-    bodydoc.setTextWidth(contentswidth);
-    qreal bodyheight = bodydoc.size().height();
+    if (index.data(Qt::UserRole + 1) == "Picture") {
+        QImage img;
+        img.load(index.data(Qt::DisplayRole).toString());
+        //img.setDotsPerMeterX(qRound(img.width() / 0.118)); // the CD label has a diameter of 118mm
+        //img.setDotsPerMeterY(qRound(img.height() / 0.118));
+        QTextDocument doc;
+        doc.documentLayout()->setPaintDevice(&img);
+        doc.setTextWidth(img.width());
+        painter->save();
+        img.scaled(img.height() * .20, img.width() * .20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+// p.translate to the right position
+        painter->drawImage(0,0, img);
+        painter->restore();
 
-    bool outgoing = index.data(Qt::UserRole + 1).toString() == "Outgoing";
-
-    painter->save();
-    painter->setRenderHint(QPainter::Antialiasing);
-
-    // uncomment to see the area provided to paint this item
-    //painter->drawRect(option.rect);
-
-    painter->translate(option.rect.left() + d_horizontalmargin, option.rect.top() + ((index.row() == 0) ? d_verticalmargin : 0));
-
-    // background color for chat bubble
-    QColor bgcolor("#D3D3D3");
-    if (outgoing)
-        bgcolor = "#147efb";
-
-    // create chat bubble
-    QPainterPath pointie;
-
-    // left bottom
-    pointie.moveTo(0, bodyheight + d_toppadding + d_bottompadding);
-
-    // right bottom
-    pointie.lineTo(0 + contentswidth + d_pointerwidth + d_leftpadding + d_rightpadding - d_radius,
-                   bodyheight + d_toppadding + d_bottompadding);
-    pointie.arcTo(0 + contentswidth + d_pointerwidth + d_leftpadding + d_rightpadding - 2 * d_radius,
-                  bodyheight + d_toppadding + d_bottompadding - 2 * d_radius,
-                  2 * d_radius, 2 * d_radius, 270, 90);
-
-    // right top
-    pointie.lineTo(0 + contentswidth + d_pointerwidth + d_leftpadding + d_rightpadding, 0 + d_radius);
-    pointie.arcTo(0 + contentswidth + d_pointerwidth + d_leftpadding + d_rightpadding - 2 * d_radius, 0,
-                  2 * d_radius, 2 * d_radius, 0, 90);
-
-    // left top
-    pointie.lineTo(0 + d_pointerwidth + d_radius, 0);
-    pointie.arcTo(0 + d_pointerwidth, 0, 2 * d_radius, 2 * d_radius, 90, 90);
-
-    // left bottom almost (here is the pointie)
-    pointie.lineTo(0 + d_pointerwidth, bodyheight + d_toppadding + d_bottompadding - d_pointerheight);
-    pointie.closeSubpath();
-
-    // rotate bubble for outgoing messages
-    if (outgoing)
-    {
-        painter->translate(option.rect.width() - pointie.boundingRect().width() - d_horizontalmargin - d_pointerwidth, 0);
-        painter->translate(pointie.boundingRect().center());
-        painter->rotate(180);
-        painter->translate(-pointie.boundingRect().center());
     }
 
-    // now paint it!
-    painter->setPen(QPen(bgcolor));
-    painter->drawPath(pointie);
-    painter->fillPath(pointie, QBrush(bgcolor));
+    else {
+        QTextDocument bodydoc;
+        QTextOption textOption(bodydoc.defaultTextOption());
+        textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+        bodydoc.setDefaultTextOption(textOption);
+        bodydoc.setDefaultFont(QFont("Roboto", 12));
+        QString bodytext(index.data(Qt::DisplayRole).toString());
+        bodydoc.setHtml(bodytext);
 
-    // rotate back or painter is going to paint the text rotated...
-    if (outgoing)
-    {
-        painter->translate(pointie.boundingRect().center());
-        painter->rotate(-180);
-        painter->translate(-pointie.boundingRect().center());
+
+        qreal contentswidth =
+                option.rect.width() * d_widthfraction - d_horizontalmargin - d_pointerwidth - d_leftpadding -
+                d_rightpadding;
+        bodydoc.setTextWidth(contentswidth);
+        qreal bodyheight = bodydoc.size().height();
+
+        bool outgoing = index.data(Qt::UserRole + 1).toString() == "Outgoing";
+
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+
+        // uncomment to see the area provided to paint this item
+        //painter->drawRect(option.rect);
+
+        painter->translate(option.rect.left() + d_horizontalmargin,
+                           option.rect.top() + ((index.row() == 0) ? d_verticalmargin : 0));
+
+        // background color for chat bubble
+        QColor bgcolor("#D3D3D3");
+        if (outgoing)
+            bgcolor = "#147efb";
+
+        // create chat bubble
+        QPainterPath pointie;
+
+        // left bottom
+        pointie.moveTo(0, bodyheight + d_toppadding + d_bottompadding);
+
+        // right bottom
+        pointie.lineTo(0 + contentswidth + d_pointerwidth + d_leftpadding + d_rightpadding - d_radius,
+                       bodyheight + d_toppadding + d_bottompadding);
+        pointie.arcTo(0 + contentswidth + d_pointerwidth + d_leftpadding + d_rightpadding - 2 * d_radius,
+                      bodyheight + d_toppadding + d_bottompadding - 2 * d_radius,
+                      2 * d_radius, 2 * d_radius, 270, 90);
+
+        // right top
+        pointie.lineTo(0 + contentswidth + d_pointerwidth + d_leftpadding + d_rightpadding, 0 + d_radius);
+        pointie.arcTo(0 + contentswidth + d_pointerwidth + d_leftpadding + d_rightpadding - 2 * d_radius, 0,
+                      2 * d_radius, 2 * d_radius, 0, 90);
+
+        // left top
+        pointie.lineTo(0 + d_pointerwidth + d_radius, 0);
+        pointie.arcTo(0 + d_pointerwidth, 0, 2 * d_radius, 2 * d_radius, 90, 90);
+
+        // left bottom almost (here is the pointie)
+        pointie.lineTo(0 + d_pointerwidth, bodyheight + d_toppadding + d_bottompadding - d_pointerheight);
+        pointie.closeSubpath();
+
+        // rotate bubble for outgoing messages
+        if (outgoing) {
+            painter->translate(
+                    option.rect.width() - pointie.boundingRect().width() - d_horizontalmargin - d_pointerwidth, 0);
+            painter->translate(pointie.boundingRect().center());
+            painter->rotate(180);
+            painter->translate(-pointie.boundingRect().center());
+        }
+
+        // now paint it!
+        painter->setPen(QPen(bgcolor));
+        painter->drawPath(pointie);
+        painter->fillPath(pointie, QBrush(bgcolor));
+
+        // rotate back or painter is going to paint the text rotated...
+        if (outgoing) {
+            painter->translate(pointie.boundingRect().center());
+            painter->rotate(-180);
+            painter->translate(-pointie.boundingRect().center());
+        }
+
+        // set text color used to draw message body
+        QAbstractTextDocumentLayout::PaintContext ctx;
+        if (outgoing)
+            ctx.palette.setColor(QPalette::Text, QColor("black"));
+        else
+            ctx.palette.setColor(QPalette::Text, QColor("white"));
+
+        if (option.state & QStyle::State_Selected)
+            ctx.palette.setColor(QPalette::Text, option.palette.color(QPalette::Active, QPalette::HighlightedText));
+
+
+        // draw body text
+        painter->translate((outgoing ? 0 : d_pointerwidth) + d_leftpadding, 0);
+        bodydoc.documentLayout()->draw(painter, ctx);
+
+        painter->restore();
     }
-
-    // set text color used to draw message body
-    QAbstractTextDocumentLayout::PaintContext ctx;
-    if (outgoing)
-        ctx.palette.setColor(QPalette::Text, QColor("black"));
-    else
-        ctx.palette.setColor(QPalette::Text, QColor("white"));
-
-    // draw body text
-    painter->translate((outgoing ? 0 : d_pointerwidth) + d_leftpadding, 0);
-    bodydoc.documentLayout()->draw(painter, ctx);
-
-    painter->restore();
 }
 
 inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QModelIndex const &index) const
 {
-    QTextDocument bodydoc;
-    QTextOption textOption(bodydoc.defaultTextOption());
-    textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
-    bodydoc.setDefaultTextOption(textOption);
-    bodydoc.setDefaultFont(QFont("Roboto", 12));
-    QString bodytext(index.data(Qt::DisplayRole).toString());
-    bodydoc.setHtml(bodytext);
+    if (index.data(Qt::UserRole + 1) == "Picture") {
+        QImage img;
+        img.load(index.data(Qt::DisplayRole).toString());
+// p.translate to the right position
+        QSize size(img.width() * .20, img.height() * .20);
+        return size;
 
-    // the width of the contents are the (a fraction of the window width) minus (margins + padding + width of the bubble's tail)
-    qreal contentswidth = option.rect.width() * d_widthfraction - d_horizontalmargin - d_pointerwidth - d_leftpadding - d_rightpadding;
+    }
+    else {
 
-    // set this available width on the text document
-    bodydoc.setTextWidth(contentswidth);
+        QTextDocument bodydoc;
+        QTextOption textOption(bodydoc.defaultTextOption());
+        textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+        bodydoc.setDefaultTextOption(textOption);
+        bodydoc.setDefaultFont(QFont("Roboto", 12));
+        QString bodytext(index.data(Qt::DisplayRole).toString());
+        bodydoc.setHtml(bodytext);
 
-    QSize size(bodydoc.idealWidth() + d_horizontalmargin + d_pointerwidth + d_leftpadding + d_rightpadding,
-               bodydoc.size().height() + d_bottompadding + d_toppadding + d_verticalmargin + 1); // I dont remember why +1, haha, might not be necessary
+        // the width of the contents are the (a fraction of the window width) minus (margins + padding + width of the bubble's tail)
+        qreal contentswidth =
+                option.rect.width() * d_widthfraction - d_horizontalmargin - d_pointerwidth - d_leftpadding -
+                d_rightpadding;
 
-    if (index.row() == 0) // have extra margin at top of first item
-        size += QSize(0, d_verticalmargin);
+        // set this available width on the text document
+        bodydoc.setTextWidth(contentswidth);
 
-    return size;
+        QSize size(bodydoc.idealWidth() + d_horizontalmargin + d_pointerwidth + d_leftpadding + d_rightpadding,
+                   bodydoc.size().height() + d_bottompadding + d_toppadding + d_verticalmargin +
+                   1); // I dont remember why +1, haha, might not be necessary
+
+        if (index.row() == 0) // have extra margin at top of first item
+            size += QSize(0, d_verticalmargin);
+
+        return size;
+    }
 }
 
 #endif //CLIENTCHATAPP_LISTVIEWDELEGATE_H
