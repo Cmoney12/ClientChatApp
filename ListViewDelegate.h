@@ -10,6 +10,7 @@
 #include <QTextDocument>
 #include <qabstracttextdocumentlayout.h>
 #include <QPainterPath>
+#include <QBuffer>
 
 class ListViewDelegate : public QAbstractItemDelegate
 {
@@ -51,15 +52,20 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
     if (index.data(Qt::UserRole + 1) == "Picture") {
         QImage img;
         img.load(index.data(Qt::DisplayRole).toString());
-        //img.setDotsPerMeterX(qRound(img.width() / 0.118)); // the CD label has a diameter of 118mm
-        //img.setDotsPerMeterY(qRound(img.height() / 0.118));
+        QImage img_scaled = img.scaled(200,200, Qt::KeepAspectRatio);
+        //img.scaled()
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        img_scaled.save(&buffer, "PNG");
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
         QTextDocument doc;
-        doc.documentLayout()->setPaintDevice(&img);
-        doc.setTextWidth(img.width());
+        doc.setHtml("<div><img src=\"data:image/png;base64," + base_64 + "/></div>");
         painter->save();
-        img.scaled(img.height() * .20, img.width() * .20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-// p.translate to the right position
-        painter->drawImage(0,0, img);
+        QAbstractTextDocumentLayout::PaintContext ctx;
+        ctx.clip = QRectF( 0, 0, img_scaled.width(), img_scaled.height());
+        doc.documentLayout()->draw(painter, ctx);
+
+
         painter->restore();
 
     }
@@ -164,20 +170,33 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
 
 inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QModelIndex const &index) const
 {
+
+    QTextDocument bodydoc;
+    QTextOption textOption(bodydoc.defaultTextOption());
+    textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+    bodydoc.setDefaultTextOption(textOption);
+
     if (index.data(Qt::UserRole + 1) == "Picture") {
+
         QImage img;
         img.load(index.data(Qt::DisplayRole).toString());
-// p.translate to the right position
-        QSize size(img.width() * .20, img.height() * .20);
-        return size;
+        QImage img_scaled = img.scaled(200,200, Qt::KeepAspectRatio);
+        //img.scaled()
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        img_scaled.save(&buffer, "PNG");
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+        QTextDocument doc;
+        doc.setHtml("<div><img src=\"data:image/png;base64," + base_64 + "/></div>");
 
+// p.translate to the right position
+        //QSize size(img.width() * .20, img.height() * .20);
+        QSize size(bodydoc.idealWidth(), bodydoc.size().height());
+        return size;
     }
+
     else {
 
-        QTextDocument bodydoc;
-        QTextOption textOption(bodydoc.defaultTextOption());
-        textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
-        bodydoc.setDefaultTextOption(textOption);
         bodydoc.setDefaultFont(QFont("Roboto", 12));
         QString bodytext(index.data(Qt::DisplayRole).toString());
         bodydoc.setHtml(bodytext);

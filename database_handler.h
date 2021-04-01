@@ -16,7 +16,6 @@ public:
 
     explicit database_handler(const std::string& current_directory) {
         directory = "/home/corey/CLionProjects/ClientChatApp/messanger_db.sqlite";
-
     }
 
     bool connect() {
@@ -156,7 +155,7 @@ public:
                 while (true) {
                     res = sqlite3_step(selectStmt); // Execute SQL Statement.
                     if (res == SQLITE_ROW) {
-                        //sqlite3_finalize(selectStmt);
+
                         for (int i = 0; i < ctotal; i++)  // Loop times the number of columns in the table
                         {
                             std::string s = (char *) sqlite3_column_text(selectStmt,
@@ -168,7 +167,6 @@ public:
                                 messages += s + "\n";
                             }
                         }
-                        //messages += "\n";
                     }
 
                     if (res == SQLITE_DONE || res == SQLITE_ERROR) {
