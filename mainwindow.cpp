@@ -148,11 +148,11 @@ std::vector<std::pair<std::string, std::string>> MainWindow::simple_tokenizer(co
 void MainWindow::send_picture() {
     QString fileName = QFileDialog::getOpenFileName(
             this,tr("Open Image"), "/home/", tr("Image Files (*.png *.jpg *.bmp)"));
-    auto *item = new QStandardItem(fileName);
-    item->setData("Picture",Qt::UserRole + 1);
-    standard_model.appendRow(item);
-    //pic_label->setPixmap(pixmap);
-
+    if (!fileName.isEmpty()) {
+        auto *item = new QStandardItem(fileName);
+        item->setData("Picture", Qt::UserRole + 1);
+        standard_model.appendRow(item);
+    }
 }
 
 void MainWindow::sendMessage() {
@@ -176,10 +176,10 @@ void MainWindow::sendMessage() {
 
     append_sent(message_line->text());
     message_line->clear();
+
 }
 
 void MainWindow::append_sent(const QString& message) {
-    //QString message = message_line->text();
     auto *item1 = new QStandardItem(message);
     item1->setData("Outgoing", Qt::UserRole + 1);
     standard_model.appendRow(item1);
@@ -190,6 +190,7 @@ void MainWindow::append_received(const QString& message) {
     auto *received_message = new QStandardItem(message);
     received_message->setData("Incoming", Qt::UserRole + 1);
     standard_model.appendRow(received_message);
+
 }
 
 void MainWindow::onReadyRead() {
@@ -215,6 +216,7 @@ void MainWindow::onReadyRead() {
 void MainWindow::erase_user_messages() {
     stringList->delete_user(username_view->currentIndex());
     standard_model.clear();
+
 }
 
 void MainWindow::erase_all_messages() {
@@ -230,6 +232,7 @@ void MainWindow::set_recipient(QModelIndex index) {
     //sets recipient of the message and changes messages
     receiver = stringList->set_recipient(index);
     std::string messages = data_handler->get_messages(receiver.toStdString());
+    standard_model.clear();
     std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
     for(const auto& msg: message_list) {
         if (msg.first == username)
