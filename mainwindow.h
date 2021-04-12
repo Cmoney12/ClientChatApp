@@ -37,7 +37,6 @@ public:
     QPushButton *erase_user;
     QLineEdit *message_line;
     QMenu *option_menu;
-    QMenu *erase_messages;
     QListView *username_view;
     QLineEdit *search_user_line;
     QPushButton *user_button;
@@ -61,6 +60,7 @@ public slots:
     void set_recipient(QModelIndex index);
     void erase_user_messages();
     void send_picture();
+    void logout();
 
 private:
     Ui::MainWindow *ui;

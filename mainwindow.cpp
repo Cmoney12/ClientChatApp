@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 #include "chat_message.hpp"
 #include "ListViewDelegate.h"
+#include "login.h"
 #include <QWidget>
 #include <QSplitter>
 #include <QFormLayout>
@@ -27,8 +28,9 @@ MainWindow::MainWindow(QWidget *parent)
     user_button = new QPushButton("+");
     erase_user = new QPushButton("-");
     option_menu = new QMenu("Options");
-    erase_messages = new QMenu("Erase Messages");
-    option_menu->addAction(tr("Erase Messages"));
+    //connect(helpAction, SIGNAL(triggered()), this, SLOT(help()));
+    QAction *logout_ = option_menu->addAction("Logout");
+    QAction *erase_messages_ = option_menu->addAction("Erase Messages");
     menu->addMenu(option_menu);
 
     //************Username Components*****************
@@ -42,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     //******************************************
 
     connect_button = new QPushButton("Connect");
+
     //*******************Message_View***************************
     message_view = new QListView;
     message_view->setResizeMode(QListView::Adjust);
@@ -85,7 +88,8 @@ MainWindow::MainWindow(QWidget *parent)
     data_handler = new database_handler(current_directory.toStdString());
 
     connect(connect_button, &QPushButton::clicked, this, &MainWindow::connection);
-    connect(option_menu, SIGNAL(triggered(QAction*)), SLOT(erase_all_messages()));
+    connect(logout_, SIGNAL(triggered()), this, SLOT(logout()));
+    connect(erase_messages_, SIGNAL(triggered()), this, SLOT(erase_all_messages()));
     connect(send_button, &QPushButton::clicked, this, &MainWindow::sendMessage);
     connect(message_line, &QLineEdit::returnPressed, this, &MainWindow::sendMessage);
     connect(socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
@@ -153,6 +157,7 @@ void MainWindow::send_picture() {
         item->setData("Picture", Qt::UserRole + 1);
         standard_model.appendRow(item);
     }
+
 }
 
 void MainWindow::sendMessage() {
@@ -160,18 +165,17 @@ void MainWindow::sendMessage() {
     chat_message msg;
 
     std::string body = (message_line->text()).toStdString();
-    msg.create_tree(username, receiver.toStdString(), body);
-    std::string json = msg.write_json();
-    msg.body_length(json.length());
-    std::memcpy(msg.body(), json.c_str(), msg.body_length());
+    std::string json = chat_message::json_write(username, receiver.toStdString(), body);
+    msg.body_length(json.size());
+    std::memcpy(msg.body(), json.c_str(), msg.body_length() + 1);
     msg.encode_header();
-
     if(std::strlen(msg.data()) == 0) {
         return;
     } else {
         //socket->write(QString(message).toUtf8());
         socket->write((char *)msg.data(), msg.length());
         data_handler->insert_message(username, receiver.toStdString(), body);
+
     }
 
     append_sent(message_line->text());
@@ -207,6 +211,7 @@ void MainWindow::onReadyRead() {
             data_handler->insert_message(json_contents[1], json_contents[0], json_contents[2]);
             append_received(QString::fromUtf8(json_contents[2].c_str()));
         }
+
         catch (std::out_of_range &exception) {
             throw exception;
         }
@@ -228,6 +233,13 @@ void MainWindow::add_user() const {
     stringList->append(search_user_line->text());
 }
 
+void MainWindow::logout() {
+    this->close();
+    auto *log = new login();
+    log->resize(500,500);
+    log->show();
+}
+
 void MainWindow::set_recipient(QModelIndex index) {
     //sets recipient of the message and changes messages
     receiver = stringList->set_recipient(index);
@@ -245,7 +257,6 @@ void MainWindow::set_recipient(QModelIndex index) {
 
 MainWindow::~MainWindow()
 {
-    delete stringList;
     delete data_handler;
     delete ui;
 }

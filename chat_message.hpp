@@ -85,7 +85,6 @@ public:
         std::memcpy(data_, header, HEADER_SIZE);
     }
 
-
     std::vector<std::string> read_json(std::string& message) {
         std::istringstream is(message);
         pt::read_json(is, root);
@@ -114,17 +113,25 @@ public:
         return true;
     }
 
-    void create_tree(const std::string& receiver, const std::string& deliverer,
-                     const std::string& body ="", std::string type="") {
-        root.put("Header.To", receiver);
-        root.put("Header.From", deliverer);
-        root.put("Contents.Type", type);
-        //root.put("Header.Type", type_info);
-        root.put("Contents.Body", body);
+    static std::string json_write(const std::string& recipient, const std::string& deliverer,
+                                  const std::string& body) {
+
+        boost::property_tree::ptree pt;
+        pt.put("Header.To", recipient);
+        pt.put("Header.From", deliverer);
+        pt.put("Contents.Body", body);
+
+        std::stringstream ss;
+        boost::property_tree::write_json(ss, pt);
+        std::string json = ss.str();
+        ss.clear();
+
+        return json;
+
     }
 
 private:
-    std::size_t body_length_{};
+    std::size_t body_length_;
     enum { MAXIMUM_MESSAGE_SIZE = 700 };
     pt::ptree root;
     char data_[MAXIMUM_MESSAGE_SIZE + 4]{};
