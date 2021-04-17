@@ -114,11 +114,12 @@ public:
     }
 
     static std::string json_write(const std::string& recipient, const std::string& deliverer,
-                                  const std::string& body) {
+                                  const std::string& body, const std::string type = "") {
 
         boost::property_tree::ptree pt;
         pt.put("Header.To", recipient);
         pt.put("Header.From", deliverer);
+        pt.put("Contents.Type", type);
         pt.put("Contents.Body", body);
 
         std::stringstream ss;
@@ -132,7 +133,7 @@ public:
 
 private:
     std::size_t body_length_;
-    enum { MAXIMUM_MESSAGE_SIZE = 700 };
+    enum { MAXIMUM_MESSAGE_SIZE = 2500 };
     pt::ptree root;
     char data_[MAXIMUM_MESSAGE_SIZE + 4]{};
 };

@@ -20,6 +20,15 @@ public:
         return string;
     }
 
+    bool username_in_view(const QString& username) {
+        for(int i = 0; i < this->rowCount(); i++) {
+            if (stringList().at(i) == username) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void delete_user(const QModelIndex& index) {
         if (!index.isValid() || index.row() >= stringList().size())
             return;

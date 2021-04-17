@@ -47,7 +47,7 @@ public:
     QStandardItemModel standard_model;
     QString receiver;
     void append_sent(const QString& message);
-    void append_received(const QString& message);
+    void append_received(const QString& username, const QString& message);
     static std::vector<std::pair<std::string, std::string>> simple_tokenizer(const std::string& s);
 
 
@@ -61,6 +61,7 @@ public slots:
     void erase_user_messages();
     void send_picture();
     void logout();
+    void copy_data(QModelIndex index);
 
 private:
     Ui::MainWindow *ui;

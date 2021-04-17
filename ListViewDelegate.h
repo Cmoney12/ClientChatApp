@@ -50,23 +50,27 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
 {
 
     if (index.data(Qt::UserRole + 1) == "Picture") {
-        QImage img;
+        /**QImage img;
         img.load(index.data(Qt::DisplayRole).toString());
         QImage img_scaled = img.scaled(200,200, Qt::KeepAspectRatio);
-        //img.scaled()
         QByteArray byteArray;
         QBuffer buffer(&byteArray);
         img_scaled.save(&buffer, "PNG");
-        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());**/
         QTextDocument doc;
-        doc.setHtml("<div><img src=\"data:image/png;base64," + base_64 + "/></div>");
+        doc.setHtml("<div><img src=\"data:image/png;base64," + index.data(Qt::DisplayRole).toString() + "/></div>");
+        painter->drawRect(option.rect);
         painter->translate(option.rect.left() + d_horizontalmargin,
                            option.rect.top() + ((index.row() == 0) ? d_verticalmargin : 0));
 
         painter->save();
         QAbstractTextDocumentLayout::PaintContext ctx;
+        QImage img_scaled;
+        img_scaled.loadFromData(QByteArray::fromBase64(index.data(Qt::DisplayRole).toByteArray()));
         ctx.clip = QRectF( 0, 0, img_scaled.width(), img_scaled.height());
         doc.documentLayout()->draw(painter, ctx);
+        if (option.state & QStyle::State_Selected)
+            ctx.palette.setColor(QPalette::Text, option.palette.color(QPalette::Active, QPalette::HighlightedText));
 
         painter->restore();
 
@@ -180,16 +184,16 @@ inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QMod
 
     if (index.data(Qt::UserRole + 1) == "Picture") {
 
-        QImage img;
+        /**QImage img;
         img.load(index.data(Qt::DisplayRole).toString());
         QImage img_scaled = img.scaled(200,200, Qt::KeepAspectRatio);
         //img.scaled()
         QByteArray byteArray;
         QBuffer buffer(&byteArray);
         img_scaled.save(&buffer, "PNG");
-        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());**/
         QTextDocument doc;
-        doc.setHtml("<div><img src=\"data:image/png;base64," + base_64 + "/></div>");
+        doc.setHtml("<div><img src=\"data:image/png;base64," + index.data(Qt::DisplayRole).toString() + "/></div>");
 
 // p.translate to the right position
         //QSize size(img.width() * .20, img.height() * .20);

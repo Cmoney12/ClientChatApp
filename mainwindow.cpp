@@ -46,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect_button = new QPushButton("Connect");
 
     //*******************Message_View***************************
+
     message_view = new QListView;
     message_view->setResizeMode(QListView::Adjust);
     message_view->setWordWrap(true);
@@ -57,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
     message_view->setItemDelegate(new ListViewDelegate());
 
     //*******************Message_View***************************
+
     send_button = new QPushButton("Send");
     message_line = new QLineEdit;
 
@@ -95,6 +97,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
     connect(user_button, &QPushButton::clicked, this, &MainWindow::add_user);
     connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
+    connect(message_view, SIGNAL(clicked(QModelIndex)), this, SLOT(copy_data(QModelIndex)));
     connect(erase_user, &QPushButton::clicked, this, &MainWindow::erase_user_messages);
     connect(picture_button, &QPushButton::clicked, this, &MainWindow::send_picture);
 
@@ -104,12 +107,19 @@ MainWindow::MainWindow(QWidget *parent)
 
 }
 
+void MainWindow::copy_data(QModelIndex index) {
+    standard_model.data(index);
+    std::cout << index.data(Qt::UserRole + 1).data();
+    QStandardItem *item = standard_model.itemFromIndex(index);
+    std::cout << item->text().toStdString() <<std::endl;
+}
+
 void MainWindow::connection() {
     std::string messages = data_handler->load_messages();
     std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
     for(const auto& msg: message_list) {
         if (msg.first == "user")
-            append_received(QString::fromUtf8(msg.second.c_str()));
+            append_received(QString::fromUtf8(msg.first.c_str()), QString::fromUtf8(msg.second.c_str()));
         else
             append_sent(QString::fromUtf8(msg.second.c_str()));
     }
@@ -153,19 +163,49 @@ void MainWindow::send_picture() {
     QString fileName = QFileDialog::getOpenFileName(
             this,tr("Open Image"), "/home/", tr("Image Files (*.png *.jpg *.bmp)"));
     if (!fileName.isEmpty()) {
-        auto *item = new QStandardItem(fileName);
+        //new QStandardItem(fileName);
+        QImage img;
+        img.load(fileName);
+        QImage img_scaled = img.scaled(200,200, Qt::KeepAspectRatio);
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        img_scaled.save(&buffer, "PNG");
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+        auto *item = new QStandardItem(base_64);
         item->setData("Picture", Qt::UserRole + 1);
         standard_model.appendRow(item);
-    }
 
+        /**QImage img;
+        img.load(fileName);
+        QImage img_scaled = img.scaled(200,200, Qt::KeepAspectRatio);
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        img_scaled.save(&buffer, "PNG");
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+        chat_message msg;
+
+        std::string body = base_64.toStdString();
+        std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
+        msg.body_length(json.size());
+        std::memcpy(msg.body(), json.c_str(), msg.body_length()+1);
+        msg.encode_header();
+        if (std::strlen(msg.data()) == 0) {
+            return;
+        }
+        else {
+            socket->write((char*)msg.data(), msg.length());
+            data_handler->insert_message(receiver.toStdString(), username, body);
+        }**/
+    }
 }
+
 
 void MainWindow::sendMessage() {
 
     chat_message msg;
 
     std::string body = (message_line->text()).toStdString();
-    std::string json = chat_message::json_write(username, receiver.toStdString(), body);
+    std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Text");
     msg.body_length(json.size());
     std::memcpy(msg.body(), json.c_str(), msg.body_length() + 1);
     msg.encode_header();
@@ -174,8 +214,7 @@ void MainWindow::sendMessage() {
     } else {
         //socket->write(QString(message).toUtf8());
         socket->write((char *)msg.data(), msg.length());
-        data_handler->insert_message(username, receiver.toStdString(), body);
-
+        data_handler->insert_message(receiver.toStdString(), username, body);
     }
 
     append_sent(message_line->text());
@@ -190,10 +229,16 @@ void MainWindow::append_sent(const QString& message) {
 
 }
 
-void MainWindow::append_received(const QString& message) {
-    auto *received_message = new QStandardItem(message);
-    received_message->setData("Incoming", Qt::UserRole + 1);
-    standard_model.appendRow(received_message);
+void MainWindow::append_received(const QString& username, const QString& message) {
+    if (receiver == username) {
+        auto *received_message = new QStandardItem(message);
+        received_message->setData("Incoming", Qt::UserRole + 1);
+        standard_model.appendRow(received_message);
+    }
+
+    else if (!stringList->username_in_view(username)) {
+        stringList->append(username);
+    }
 
 }
 
@@ -209,7 +254,7 @@ void MainWindow::onReadyRead() {
             std::string body = line.toStdString().substr(pos);
             std::vector<std::string> json_contents = message.read_json(body);
             data_handler->insert_message(json_contents[1], json_contents[0], json_contents[2]);
-            append_received(QString::fromUtf8(json_contents[2].c_str()));
+            append_received(QString::fromUtf8(json_contents[1].c_str()), QString::fromUtf8(json_contents[2].c_str()));
         }
 
         catch (std::out_of_range &exception) {
@@ -248,7 +293,7 @@ void MainWindow::set_recipient(QModelIndex index) {
     std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
     for(const auto& msg: message_list) {
         if (msg.first == username)
-            append_received(QString::fromUtf8(msg.second.c_str()));
+            append_received(QString::fromUtf8(msg.first.c_str()), QString::fromUtf8(msg.second.c_str()));
         else
             append_sent(QString::fromUtf8(msg.second.c_str()));
     }
