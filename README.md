@@ -3,7 +3,7 @@ Work in progress Qt chat client written purely in C++ implementing sqlite3, asyn
 
 ## Works in conjunction with
 
-https://github.com/Cmoney12/usernameServer/settings
+https://github.com/Cmoney12/usernameServer/
 
 ## Main Screen:
 
