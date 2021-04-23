@@ -19,6 +19,12 @@ public:
     {
     }
 
+    ~chat_message() {
+        if(data_) {
+            delete[] data_;
+        }
+    }
+
     const char* data() const
     {
         return data_;
@@ -56,10 +62,10 @@ public:
     void body_length(std::size_t new_length)
     {
         body_length_ = new_length;
+        data_ = new char[HEADER_SIZE + body_length_];
         if (body_length_ > MAXIMUM_MESSAGE_SIZE)
             body_length_ = MAXIMUM_MESSAGE_SIZE;
     }
-
 
     std::string write_json() {
         std::ostringstream oss;
@@ -82,6 +88,7 @@ public:
     {
         char header[HEADER_SIZE + 1] = "";
         std::sprintf(header, "%4d", static_cast<int>(body_length_));
+        //set data size
         std::memcpy(data_, header, HEADER_SIZE);
     }
 
@@ -90,11 +97,13 @@ public:
         pt::read_json(is, root);
         std::string to = root.get<std::string>("Header.To");
         std::string from = root.get<std::string>("Header.From");
+        std::string type = root.get<std::string>("Contents.Type");
         std::string content = root.get<std::string>("Contents.Body");
 
         std::vector<std::string> parsed_json;
         parsed_json.push_back(to);
         parsed_json.push_back(from);
+        parsed_json.push_back(type);
         parsed_json.push_back(content);
         return parsed_json;
     }
@@ -114,7 +123,7 @@ public:
     }
 
     static std::string json_write(const std::string& recipient, const std::string& deliverer,
-                                  const std::string& body, const std::string type = "") {
+                                  const std::string& body, const std::string& type = "") {
 
         boost::property_tree::ptree pt;
         pt.put("Header.To", recipient);
@@ -133,8 +142,8 @@ public:
 
 private:
     std::size_t body_length_;
-    enum { MAXIMUM_MESSAGE_SIZE = 2500 };
+    enum { MAXIMUM_MESSAGE_SIZE = 24448 };
+    char* data_;
     pt::ptree root;
-    char data_[MAXIMUM_MESSAGE_SIZE + 4]{};
 };
 #endif //CLIENTCHATAPP_CHAT_MESSAGE_HPP

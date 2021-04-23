@@ -48,6 +48,7 @@ public:
     QString receiver;
     void append_sent(const QString& message);
     void append_received(const QString& username, const QString& message);
+    void receive_picture(const QString& user_name, const QString& img_data);
     static std::vector<std::pair<std::string, std::string>> simple_tokenizer(const std::string& s);
 
 
@@ -57,11 +58,14 @@ public slots:
     void onReadyRead();
     void erase_all_messages();
     void add_user() const;
-    void set_recipient(QModelIndex index);
     void erase_user_messages();
     void send_picture();
     void logout();
-    void copy_data(QModelIndex index);
+    void ShowContextMenu(const QPoint& point) const;
+    void set_recipient(QModelIndex index);
+
+private slots:
+    void copy_data() const;
 
 private:
     Ui::MainWindow *ui;
