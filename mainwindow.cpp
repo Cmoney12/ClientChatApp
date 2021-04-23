@@ -194,36 +194,42 @@ std::vector<std::pair<std::string, std::string>> MainWindow::simple_tokenizer(co
 }
 
 void MainWindow::send_picture() {
+
     QString fileName = QFileDialog::getOpenFileName(
             this,tr("Open Image"), "/home/", tr("Image Files (*.png *.jpg *.bmp)"));
+
     if (!fileName.isEmpty()) {
         //new QStandardItem(fileName);
         QImage img;
         img.load(fileName);
-        QImage img_scaled = img.scaled(200,200, Qt::KeepAspectRatio);
+
+        QImage img_scaled = img.scaled(250,250, Qt::KeepAspectRatio);
         QByteArray byteArray;
         QBuffer buffer(&byteArray);
         img_scaled.save(&buffer, "PNG");
         QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+
         auto *item = new QStandardItem(base_64);
         item->setData("Picture", Qt::UserRole + 1);
         standard_model.appendRow(item);
 
-        /**chat_message msg;
+        chat_message *msg = new chat_message;
 
         std::string body = base_64.toStdString();
         std::cout << body.size() << std::endl;
         std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
-        msg.body_length(json.size());
-        std::memcpy(msg.body(), json.c_str(), msg.body_length()+1);
-        msg.encode_header();**/
-        //if (std::strlen(msg.data()) == 0) {
-        //    return;
-        //}
-        //else {
-        //    socket->write((char*)msg.data(), msg.length());
-        //    data_handler->insert_message(receiver.toStdString(), username, body);
-        //}
+        msg->body_length(json.size());
+        std::memcpy(msg->body(), json.c_str(), msg->body_length()+1);
+        msg->encode_header();
+        if (std::strlen(msg->data()) == 0) {
+            delete msg;
+            return;
+        }
+        else {
+            socket->write((char*)msg->data(), msg->length());
+            data_handler->insert_message(receiver.toStdString(), username, body);
+            delete msg;
+        }
     }
 }
 

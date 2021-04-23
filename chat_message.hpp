@@ -13,7 +13,7 @@ namespace pt = boost::property_tree;
 
 class chat_message {
 public:
-    enum {HEADER_SIZE = 4 };
+    enum {HEADER_SIZE = 5 };
 
     chat_message(): body_length_(0)
     {
@@ -87,7 +87,7 @@ public:
     void encode_header()
     {
         char header[HEADER_SIZE + 1] = "";
-        std::sprintf(header, "%4d", static_cast<int>(body_length_));
+        std::sprintf(header, "%5d", static_cast<int>(body_length_));
         //set data size
         std::memcpy(data_, header, HEADER_SIZE);
     }
@@ -142,7 +142,7 @@ public:
 
 private:
     std::size_t body_length_;
-    enum { MAXIMUM_MESSAGE_SIZE = 24448 };
+    enum { MAXIMUM_MESSAGE_SIZE = 99999 };
     char* data_;
     pt::ptree root;
 };
