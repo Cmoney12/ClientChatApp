@@ -305,6 +305,7 @@ void MainWindow::onReadyRead() {
                 append_received(QString::fromUtf8(json_contents[1].c_str()),
                                 QString::fromUtf8(json_contents[3].c_str()));
             }
+
             else if (json_contents[2] == "Picture") {
                 receive_picture(QString::fromUtf8(json_contents[1].c_str()),
                                 QString::fromUtf8(json_contents[3].c_str()));
