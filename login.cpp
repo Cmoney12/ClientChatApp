@@ -43,7 +43,6 @@ login::login(QWidget *parent): QMainWindow(parent)
     layout->addWidget(register_button);
     setCentralWidget(widget);
 
-
     std::string local_db_dir = dir + "/resources/messanger_db.sqlite";
     data_handler = new database_handler(local_db_dir);
     connect(login_button, &QPushButton::clicked, this, &login::on_login);
