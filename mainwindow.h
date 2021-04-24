@@ -36,6 +36,7 @@ public:
     QPushButton *picture_button;
     QPushButton *erase_user;
     QLineEdit *message_line;
+    QPushButton *record_button;
     QMenu *option_menu;
     QListView *username_view;
     QLineEdit *search_user_line;
@@ -61,7 +62,7 @@ public slots:
     void erase_user_messages();
     void send_picture();
     void logout();
-    void ShowContextMenu(const QPoint& point) const;
+    void show_context_menu(const QPoint& pos) const;
     void set_recipient(QModelIndex index);
 
 private slots:

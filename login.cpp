@@ -18,7 +18,7 @@ login::login(QWidget *parent): QMainWindow(parent)
     std::size_t size = dir.find_last_of("/\\");
     dir = dir.substr(0,size);
 
-    std::string logo_directory = dir + "/resources/vega3.png";
+    std::string logo_directory = dir + "/resources/vega_logo.png";
 
     pic_label = new QLabel;
     QPixmap pixmap(QString::fromUtf8(logo_directory.c_str()));

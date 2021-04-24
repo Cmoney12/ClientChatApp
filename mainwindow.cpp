@@ -75,6 +75,13 @@ MainWindow::MainWindow(QWidget *parent)
     QIcon ButtonIcon(pixmap);
     picture_button = new QPushButton();
     picture_button->setIcon(ButtonIcon);
+
+    std::string picture_logo = dir + "/resources/record_button.png";
+    QPixmap record_map(QString::fromUtf8(picture_logo.c_str()));
+    QIcon record_icon(record_map);
+    record_button = new QPushButton;
+    record_button->setIcon(record_icon);
+
     leftlayout->addRow(search_user_line, user_button);
     leftlayout->addWidget(erase_user);
     leftlayout->addRow(username_view);
@@ -86,13 +93,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     //************************************************************
 
-    auto *hBoxLayout = new QHBoxLayout();
-    hBoxLayout->addWidget(send_button);
-    hBoxLayout->addWidget(picture_button);
-    auto *container = new QWidget;
-    container->setLayout(hBoxLayout);
+    auto *gridlayout = new QGridLayout;
 
-    rightlayout->addRow(container, message_line);
+    gridlayout->addWidget(picture_button,0,0,1,1);
+    gridlayout->addWidget(record_button, 0,1,1,1);
+    auto *media_buttons_container = new QWidget;
+    media_buttons_container->setLayout(gridlayout);
+
+    rightlayout->addRow(send_button, message_line);
+    rightlayout->addRow(media_buttons_container);
     splitter->addWidget(left_widget);
     splitter->addWidget(rightwidget);
     setCentralWidget(splitter);
@@ -106,7 +115,7 @@ MainWindow::MainWindow(QWidget *parent)
     message_view->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(message_view, SIGNAL(customContextMenuRequested(const QPoint &)),
-            this, SLOT(ShowContextMenu(const QPoint &)));
+            this, SLOT(show_context_menu(const QPoint &)));
 
     connect(connect_button, &QPushButton::clicked, this, &MainWindow::connection);
     connect(logout_, SIGNAL(triggered()), this, SLOT(logout()));
@@ -123,7 +132,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 }
 
-void MainWindow::ShowContextMenu(const QPoint& pos) const
+void MainWindow::show_context_menu(const QPoint& pos) const
 {
     QPoint globalPos = message_view->mapToGlobal(pos);
 
