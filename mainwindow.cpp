@@ -25,6 +25,11 @@ MainWindow::MainWindow(QWidget *parent)
     auto *rightlayout = new QFormLayout;
     auto *leftlayout = new QFormLayout;
 
+    std::string dir = QDir::currentPath().toStdString();
+
+    std::size_t size = dir.find_last_of("/\\");
+    dir = dir.substr(0,size);
+
     menu = new QMenuBar;
     search_user_line = new QLineEdit;
     user_button = new QPushButton("+");
@@ -64,7 +69,9 @@ MainWindow::MainWindow(QWidget *parent)
     send_button = new QPushButton("Send");
     message_line = new QLineEdit;
 
-    QPixmap pixmap("/home/corey/CLionProjects/ClientChatApp/picture_button.png");
+    std::string logo_path = dir + "/resources/picture_button.png";
+
+    QPixmap pixmap(QString::fromUtf8(logo_path.c_str()));
     QIcon ButtonIcon(pixmap);
     picture_button = new QPushButton();
     picture_button->setIcon(ButtonIcon);
@@ -73,6 +80,9 @@ MainWindow::MainWindow(QWidget *parent)
     leftlayout->addRow(username_view);
     rightlayout->addRow(connect_button);
     rightlayout->addRow(message_view);
+
+    QString path = QCoreApplication::applicationDirPath();
+    std::cout << path.toStdString() << std::endl;
 
     //************************************************************
 
@@ -88,8 +98,10 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(splitter);
     setMenuBar(menu);
 
-    auto current_directory = QCoreApplication::applicationDirPath();
-    data_handler = new database_handler(current_directory.toStdString());
+    //auto current_directory = QCoreApplication::applicationDirPath();
+    std::string db_directory = dir + "/resources/messanger_db.sqlite";
+
+    data_handler = new database_handler(db_directory);
 
     message_view->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -108,8 +120,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(picture_button, &QPushButton::clicked, this, &MainWindow::send_picture);
 
     username = data_handler->get_username();
-
-    receiver = "";
 
 }
 
@@ -216,7 +226,9 @@ void MainWindow::send_picture() {
         chat_message *msg = new chat_message;
 
         std::string body = base_64.toStdString();
-        std::cout << body.size() << std::endl;
+
+        QString receiver = get_recipient();
+
         std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
         msg->body_length(json.size());
         std::memcpy(msg->body(), json.c_str(), msg->body_length()+1);
@@ -239,6 +251,8 @@ void MainWindow::sendMessage() {
     auto *msg = new chat_message;
 
     std::string body = (message_line->text()).toStdString();
+    QString receiver = get_recipient();
+
     std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Text");
     msg->body_length(json.size());
     std::memcpy(msg->body(), json.c_str(), msg->body_length() + 1);
@@ -267,6 +281,7 @@ void MainWindow::append_sent(const QString& message) {
 }
 
 void MainWindow::append_received(const QString& user_name, const QString& message) {
+    QString receiver = get_recipient();
     if (receiver == user_name) {
 
         auto *received_message = new QStandardItem(message);
@@ -340,9 +355,16 @@ void MainWindow::logout() {
     log->show();
 }
 
+QString MainWindow::get_recipient() const {
+    QModelIndex index = username_view->currentIndex();
+    QString recipient = stringList->set_recipient(index);
+
+    return recipient;
+}
+
 void MainWindow::set_recipient(QModelIndex index) {
     //sets recipient of the message and changes messages
-    receiver = stringList->set_recipient(index);
+    QString receiver = get_recipient();
     std::string messages = data_handler->get_messages(receiver.toStdString());
     standard_model.clear();
     std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);

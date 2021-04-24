@@ -15,7 +15,7 @@ class database_handler {
 public:
 
     explicit database_handler(const std::string& current_directory) {
-        directory = "/home/corey/CLionProjects/ClientChatApp/messanger_db.sqlite";
+        directory = current_directory;
     }
 
     bool connect() {
@@ -70,18 +70,24 @@ public:
         }
     }
 
-    void check_tables() {
+    bool check_tables() {
         if (!valid_login_table()) {
-                create_login_table();
+            create_login_table();
         }
         if(!valid_message_table()) {
             create_message_table();
+        }
+        if(valid_login_table() && valid_message_table()) {
+            return true;
+        }
+        else {
+            return false;
         }
     }
 
     bool valid_message_table() {
         bool selected = false;
-        if (sqlite3_open(directory.c_str(), &db) == SQLITE_OK) {
+        if (connect()) {
             char sql[] = "SELECT * FROM Messages";
             struct sqlite3_stmt *selectstmt;
             int result = sqlite3_prepare_v2(db, sql, -1, &selectstmt, nullptr);
@@ -105,7 +111,6 @@ public:
             }
         }
         disconnect();
-        //sqlite3_close(db);
         return exists;
     }
 

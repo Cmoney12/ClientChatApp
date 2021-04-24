@@ -22,6 +22,7 @@ public:
     QLabel *username_label;
     QLabel *password_label;
     database_handler *data_handler;
+    std::string directory;
 
 public slots:
     void on_login();

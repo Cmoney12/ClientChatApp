@@ -13,10 +13,16 @@ login::login(QWidget *parent): QMainWindow(parent)
     auto *widget = new QWidget;
     auto *layout = new QFormLayout;
 
+    std::string dir = QDir::currentPath().toStdString();
+
+    std::size_t size = dir.find_last_of("/\\");
+    dir = dir.substr(0,size);
+
+    std::string logo_directory = dir + "/resources/vega3.png";
+
     pic_label = new QLabel;
-    QPixmap pixmap("/home/corey/CLionProjects/ClientChatApp/vega3.png");
+    QPixmap pixmap(QString::fromUtf8(logo_directory.c_str()));
     pic_label->setPixmap(pixmap);
-    //pic_label->setMask(pixmap.mask());
 
     username_line = new QLineEdit;
     password_line = new QLineEdit;
@@ -37,8 +43,9 @@ login::login(QWidget *parent): QMainWindow(parent)
     layout->addWidget(register_button);
     setCentralWidget(widget);
 
-    std::string current_directory = "/home/corey/CLionProjects/ClientChatApp";
-    data_handler = new database_handler(current_directory);
+
+    std::string local_db_dir = dir + "/resources/messanger_db.sqlite";
+    data_handler = new database_handler(local_db_dir);
     connect(login_button, &QPushButton::clicked, this, &login::on_login);
     connect(register_button, &QPushButton::clicked, this, &login::register_user);
 
@@ -47,7 +54,11 @@ login::login(QWidget *parent): QMainWindow(parent)
 void login::on_login() {
     QString username = username_line->text();
     QString password = password_line->text();
-    bool login_result = data_handler->login(username.toStdString(), password.toStdString());
+    //bool login_result = data_handler->login(username.toStdString(), password.toStdString());
+    bool login_result = false;
+    if(data_handler->check_tables()) {
+        login_result = data_handler->login(username.toStdString(), password.toStdString());
+    }
 
     if (login_result) {
         auto mainwindow = new MainWindow();
@@ -57,6 +68,7 @@ void login::on_login() {
     } else {
         QMessageBox::warning(this, "Login Error", "Username/Password does not exist");
     }
+
 }
 
 void login::register_user() {
