@@ -1,6 +1,5 @@
 # ClientChatApp
-Work in progress Qt chat client written purely in C++ implementing sqlite3, asynchronous networking, and Json. The only thing left is to handle the transmission of images. 
-
+Work in progress Qt chat client written purely in C++ implementing sqlite3, asynchronous networking, and Json. 
 ## Works in conjunction with
 
 https://github.com/Cmoney12/usernameServer/
