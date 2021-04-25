@@ -49,14 +49,8 @@ inline ListViewDelegate::ListViewDelegate(QObject *parent)
 inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem const &option, QModelIndex const &index) const
 {
 
-    if (index.data(Qt::UserRole + 1) == "Picture") {
-        /**QImage img;
-        img.load(index.data(Qt::DisplayRole).toString());
-        QImage img_scaled = img.scaled(200,200, Qt::KeepAspectRatio);
-        QByteArray byteArray;
-        QBuffer buffer(&byteArray);
-        img_scaled.save(&buffer, "PNG");
-        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());**/
+    if (index.data(Qt::UserRole + 1).toString().contains("Picture")) {
+
         painter->save();
         QTextDocument doc;
         doc.setHtml("<div><img src=\"data:image/png;base64," + index.data(Qt::DisplayRole).toString() + "/></div>");
@@ -82,7 +76,6 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
         bodydoc.setDefaultFont(QFont("Roboto", 12));
         QString bodytext(index.data(Qt::DisplayRole).toString());
         bodydoc.setHtml(bodytext);
-
 
         qreal contentswidth =
                 option.rect.width() * d_widthfraction - d_horizontalmargin - d_pointerwidth - d_leftpadding -

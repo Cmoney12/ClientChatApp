@@ -77,9 +77,11 @@ void login::register_user() {
     if (registration) {
         QMessageBox::warning(this, "Registered Successfully", "Please login to continue");
     }
+
     else {
         QMessageBox::warning(this, "Registry error","Error when registering user");
     }
+
 }
 
 login::~login()

@@ -55,31 +55,34 @@ public:
     }
 
     bool register_user(const std::string &user_name, const std::string &pass_word) {
+        bool response;
+        check_tables();
         if (connect()) {
             std::string sql = "INSERT INTO Login VALUES('" + user_name + "','" + pass_word + "')";
             int exit = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
             sqlite3_free(zErrMsg);
-            if (exit != SQLITE_OK) {
+            if (exit == SQLITE_OK) {
                 disconnect();
-                return true;
+                response = true;
             }
         }
-        else {
-            disconnect();
-            return false;
-        }
+
+        return response;
     }
 
     bool check_tables() {
         if (!valid_login_table()) {
             create_login_table();
         }
+
         if(!valid_message_table()) {
             create_message_table();
         }
+
         if(valid_login_table() && valid_message_table()) {
             return true;
         }
+
         else {
             return false;
         }
@@ -133,7 +136,8 @@ public:
         sqlite3_close(db);
     }
 
-    int insert_message(const std::string& deliverer, const std::string& recipient, const std::string& message) {
+    bool insert_message(const std::string& deliverer, const std::string& recipient, const std::string& message) {
+        bool success;
         if (connect()) {
 
             std::string sql = "INSERT INTO Messages VALUES('" + deliverer + "','" + recipient + "','" +
@@ -141,11 +145,12 @@ public:
 
             rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
             sqlite3_free(zErrMsg);
-            if (rc != SQLITE_OK) {
-                return 1;
+            if (rc == SQLITE_OK) {
+                success = true;
             }
         }
         disconnect();
+        return success;
     }
 
     std::string load_messages() {

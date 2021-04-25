@@ -88,8 +88,7 @@ MainWindow::MainWindow(QWidget *parent)
     rightlayout->addRow(connect_button);
     rightlayout->addRow(message_view);
 
-    QString path = QCoreApplication::applicationDirPath();
-    std::cout << path.toStdString() << std::endl;
+    //QString path = QCoreApplication::applicationDirPath();
 
     //************************************************************
 
@@ -152,7 +151,7 @@ void MainWindow::copy_data() const {
 
     QStandardItem *item = standard_model.itemFromIndex(index);
 
-    if (index.data(Qt::UserRole + 1)== "Picture") {
+    if (index.data(Qt::UserRole + 1) == "Picture") {
 
         QByteArray pic_array;
         pic_array.append(item->text());
@@ -253,7 +252,6 @@ void MainWindow::send_picture() {
         }
     }
 }
-
 
 void MainWindow::sendMessage() {
 

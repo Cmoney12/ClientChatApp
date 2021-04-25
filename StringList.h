@@ -16,8 +16,12 @@ public:
     }
 
     QString set_recipient(QModelIndex index) {
-        QString string = stringList().at(index.row());
-        return string;
+
+        QString username;
+        if (!stringList().empty() && stringList().size() >= index.row())
+            username = stringList().at(index.row());
+
+        return username;
     }
 
     bool username_in_view(const QString& username) {
