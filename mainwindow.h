@@ -64,9 +64,13 @@ public slots:
     void logout();
     void show_context_menu(const QPoint& pos) const;
     void set_recipient(QModelIndex index);
+    static unsigned int random_char();
+    std::string generate_hex(unsigned int len);
+
 
 private slots:
     void copy_data() const;
+    void save_image();
 
 private:
     Ui::MainWindow *ui;

@@ -8,6 +8,9 @@
 #include <iostream>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/iostreams/filter/zstd.hpp>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/copy.hpp>
 
 namespace pt = boost::property_tree;
 
@@ -138,6 +141,38 @@ public:
 
         return json;
 
+    }
+
+    static std::string compression(std::string& data) {
+
+        std::stringstream compressed;
+        std::stringstream origin(data);
+
+        boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
+        out.push(boost::iostreams::zstd_compressor(boost::iostreams::zstd_params(
+                boost::iostreams::zstd::default_compression)));
+
+        out.push(origin);
+
+        boost::iostreams::copy(out, compressed);
+
+        std::string comp = compressed.str();
+
+        return compressed.str();
+
+    }
+
+    static std::string decompress(const std::string &data) {
+
+        std::stringstream compressed;
+        std::stringstream decompressed;
+        compressed << data;
+        boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
+        in.push(boost::iostreams::zstd_decompressor());
+        in.push(compressed);
+        boost::iostreams::copy(in, decompressed);
+
+        return decompressed.str();
     }
 
 private:

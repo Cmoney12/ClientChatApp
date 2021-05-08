@@ -10,6 +10,9 @@
 #include <QFileDialog>
 #include <QAction>
 #include <QClipboard>
+#include <random>
+#include <string>
+
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -131,17 +134,65 @@ MainWindow::MainWindow(QWidget *parent)
 
 }
 
-void MainWindow::show_context_menu(const QPoint& pos) const
-{
+void MainWindow::show_context_menu(const QPoint& pos) const {
+
     QPoint globalPos = message_view->mapToGlobal(pos);
 
     // Create menu and insert some actions
     QMenu myMenu;
     myMenu.addAction("Copy", this, SLOT(copy_data()));
+    myMenu.addAction("Save_img", this, SLOT(save_image()));
+
+
 
     // Show context menu at handling position
     myMenu.exec(globalPos);
+
 }
+
+void MainWindow::save_image() {
+    QModelIndex index = message_view->currentIndex();
+    standard_model.data(index);
+
+    QStandardItem *item = standard_model.itemFromIndex(index);
+
+    if (index.data(Qt::UserRole + 1) == "Picture") {
+
+        //Load base 64 string from index
+        QByteArray pic_array;
+        pic_array.append(item->text());
+
+        QPixmap image;
+        image.loadFromData(QByteArray::fromBase64(pic_array));
+
+        QString uuid_filename = QString::fromUtf8(generate_hex(7).c_str()) + ".png";
+        std::cout << uuid_filename.toStdString() << std::endl;
+
+        QFile file(uuid_filename);
+        file.open(QIODevice::WriteOnly);
+        image.save(&file, "PNG");
+    }
+}
+
+unsigned int MainWindow::random_char() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, 255);
+    return dis(gen);
+}
+
+std::string MainWindow::generate_hex(unsigned int len) {
+    std::stringstream ss;
+    for (auto i = 0; i < len; i++) {
+        const auto rc = random_char();
+        std::stringstream hexstream;
+        hexstream << std::hex << rc;
+        auto hex = hexstream.str();
+        ss << (hex.length() < 2 ? '0' + hex : hex);
+    }
+    return ss.str();
+}
+
 
 void MainWindow::copy_data() const {
 
@@ -161,9 +212,13 @@ void MainWindow::copy_data() const {
 
         clipboard->setPixmap(image, QClipboard::Clipboard);
     }
+
     else {
+
         clipboard->setText(item->text());
+
     }
+
 }
 
 void MainWindow::connection() {
@@ -217,7 +272,7 @@ void MainWindow::send_picture() {
             this,tr("Open Image"), "/home/", tr("Image Files (*.png *.jpg *.bmp)"));
 
     if (!fileName.isEmpty()) {
-        //new QStandardItem(fileName);
+
         QImage img;
         img.load(fileName);
 
@@ -231,7 +286,7 @@ void MainWindow::send_picture() {
         item->setData("Picture", Qt::UserRole + 1);
         standard_model.appendRow(item);
 
-        chat_message *msg = new chat_message;
+        auto *msg = new chat_message;
 
         std::string body = base_64.toStdString();
 
@@ -245,11 +300,13 @@ void MainWindow::send_picture() {
             delete msg;
             return;
         }
+
         else {
             socket->write((char*)msg->data(), msg->length());
             data_handler->insert_message(receiver.toStdString(), username, body);
             delete msg;
         }
+
     }
 }
 
@@ -265,7 +322,7 @@ void MainWindow::sendMessage() {
     std::memcpy(msg->body(), json.c_str(), msg->body_length() + 1);
     msg->encode_header();
     if(std::strlen(msg->data()) == 0) {
-        //delete msg;
+        delete msg;
         return;
     } else {
         //socket->write(QString(message).toUtf8());
