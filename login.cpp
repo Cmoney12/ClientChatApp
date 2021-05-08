@@ -51,14 +51,18 @@ login::login(QWidget *parent): QMainWindow(parent)
 }
 
 void login::on_login() {
+    //Get username and password
     QString username = username_line->text();
     QString password = password_line->text();
     //bool login_result = data_handler->login(username.toStdString(), password.toStdString());
     bool login_result = false;
+
+    // check if sqlite table exists if not create new sqlite file
     if(data_handler->check_tables()) {
         login_result = data_handler->login(username.toStdString(), password.toStdString());
     }
 
+    // if username and password match open Window
     if (login_result) {
         auto mainwindow = new MainWindow();
         //mainwindow->setBaseSize(500,500);

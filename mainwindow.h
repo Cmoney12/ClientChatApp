@@ -63,7 +63,7 @@ public slots:
     void send_picture();
     void logout();
     void show_context_menu(const QPoint& pos) const;
-    void set_recipient(QModelIndex index);
+    void set_recipient();
     static unsigned int random_char();
     std::string generate_hex(unsigned int len);
 

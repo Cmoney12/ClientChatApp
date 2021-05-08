@@ -126,7 +126,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(message_line, &QLineEdit::returnPressed, this, &MainWindow::sendMessage);
     connect(socket, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
     connect(user_button, &QPushButton::clicked, this, &MainWindow::add_user);
-    connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient(QModelIndex)));
+    connect(username_view, SIGNAL(clicked(QModelIndex)), this, SLOT(set_recipient()));
     connect(erase_user, &QPushButton::clicked, this, &MainWindow::erase_user_messages);
     connect(picture_button, &QPushButton::clicked, this, &MainWindow::send_picture);
 
@@ -222,6 +222,7 @@ void MainWindow::copy_data() const {
 }
 
 void MainWindow::connection() {
+    //retrieve and parse messages from db
     std::string messages = data_handler->load_messages();
     std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
     for(const auto& msg: message_list) {
@@ -234,7 +235,7 @@ void MainWindow::connection() {
     //Connect to host
     socket->connectToHost("127.0.0.1", 1234);
 
-    //send username to server
+    //Send Username to Server
     QString username_message = QString::fromUtf8(username.c_str()) + "\n";
     socket->write(QString(username_message).toUtf8());
 }
@@ -290,9 +291,11 @@ void MainWindow::send_picture() {
 
         std::string body = base_64.toStdString();
 
+        std::string comp_body = chat_message::compression(body);
+
         QString receiver = get_recipient();
 
-        std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
+        std::string json = chat_message::json_write(receiver.toStdString(), username, comp_body, "Picture");
         msg->body_length(json.size());
         std::memcpy(msg->body(), json.c_str(), msg->body_length()+1);
         msg->encode_header();
@@ -312,6 +315,8 @@ void MainWindow::send_picture() {
 
 void MainWindow::sendMessage() {
 
+
+    //instatiate a new chat_message and create header
     auto *msg = new chat_message;
 
     std::string body = (message_line->text()).toStdString();
@@ -337,7 +342,7 @@ void MainWindow::sendMessage() {
 }
 
 void MainWindow::append_sent(const QString& message) {
-
+    //append a sent message to the message view
     auto *item1 = new QStandardItem(message);
     item1->setData("Outgoing", Qt::UserRole + 1);
     standard_model.appendRow(item1);
@@ -345,6 +350,7 @@ void MainWindow::append_sent(const QString& message) {
 }
 
 void MainWindow::append_received(const QString& user_name, const QString& message) {
+    // append a received message to the message_view
     QString receiver = get_recipient();
     if (receiver == user_name) {
 
@@ -370,6 +376,9 @@ void MainWindow::receive_picture(const QString& user_name, const QString& img_da
 
 void MainWindow::onReadyRead() {
 
+    // read message received, insert contents into db,
+    // append to the appropriate view
+
     QString line;
     auto *message = new chat_message;
 
@@ -386,8 +395,9 @@ void MainWindow::onReadyRead() {
             }
 
             else if (json_contents[2] == "Picture") {
+                std::string decompressed = chat_message::decompress(json_contents[3].c_str());
                 receive_picture(QString::fromUtf8(json_contents[1].c_str()),
-                                QString::fromUtf8(json_contents[3].c_str()));
+                                QString::fromUtf8(decompressed.c_str()));
             }
         }
 
@@ -426,7 +436,7 @@ QString MainWindow::get_recipient() const {
     return recipient;
 }
 
-void MainWindow::set_recipient(QModelIndex index) {
+void MainWindow::set_recipient() {
     //sets recipient of the message and changes messages
     QString receiver = get_recipient();
     std::string messages = data_handler->get_messages(receiver.toStdString());
