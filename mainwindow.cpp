@@ -289,12 +289,9 @@ void MainWindow::send_picture() {
 
         std::string body = base_64.toStdString();
 
-        std::string comp_body = chat_message::compression(body);
-        //std::cout << comp_body.size() << std::endl;
-
         QString receiver = get_recipient();
 
-        std::string json = chat_message::json_write(receiver.toStdString(), username, comp_body, "Picture");
+        std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
         msg->body_length(json.size());
         std::memcpy(msg->body(), json.c_str(), msg->body_length()+1);
         msg->encode_header();
@@ -394,11 +391,8 @@ void MainWindow::onReadyRead() {
             }
 
             else if (json_contents[2] == "Picture") {
-                std::string decom = json_contents[3];
-                std::string decompressed = chat_message::decompress(json_contents[3]);
-                //std::cout << decompressed << std::endl;
                 receive_picture(QString::fromUtf8(json_contents[1].c_str()),
-                                QString::fromUtf8(decompressed.c_str()));
+                                QString::fromUtf8(json_contents[3].c_str()));
             }
         }
 
