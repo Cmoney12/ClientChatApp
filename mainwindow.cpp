@@ -214,9 +214,7 @@ void MainWindow::copy_data() const {
     }
 
     else {
-
         clipboard->setText(item->text());
-
     }
 
 }
@@ -292,6 +290,7 @@ void MainWindow::send_picture() {
         std::string body = base_64.toStdString();
 
         std::string comp_body = chat_message::compression(body);
+        //std::cout << comp_body.size() << std::endl;
 
         QString receiver = get_recipient();
 
@@ -395,7 +394,9 @@ void MainWindow::onReadyRead() {
             }
 
             else if (json_contents[2] == "Picture") {
-                std::string decompressed = chat_message::decompress(json_contents[3].c_str());
+                std::string decom = json_contents[3];
+                std::string decompressed = chat_message::decompress(json_contents[3]);
+                //std::cout << decompressed << std::endl;
                 receive_picture(QString::fromUtf8(json_contents[1].c_str()),
                                 QString::fromUtf8(decompressed.c_str()));
             }
@@ -405,6 +406,7 @@ void MainWindow::onReadyRead() {
             throw exception;
         }
     }
+    delete message;
 }
 
 void MainWindow::erase_user_messages() {
@@ -456,4 +458,3 @@ MainWindow::~MainWindow()
     delete data_handler;
     delete ui;
 }
-

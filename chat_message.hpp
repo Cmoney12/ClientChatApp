@@ -11,6 +11,7 @@
 #include <boost/iostreams/filter/zstd.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/copy.hpp>
+#include "base64.h"
 
 namespace pt = boost::property_tree;
 
@@ -144,33 +145,42 @@ public:
     }
 
     static std::string compression(std::string& data) {
+        std::cout << "The original size is " << data.size() << std::endl;
+        namespace bio = boost::iostreams;
 
         std::stringstream compressed;
         std::stringstream origin(data);
 
-        boost::iostreams::filtering_streambuf<boost::iostreams::input> out;
-        out.push(boost::iostreams::zstd_compressor(boost::iostreams::zstd_params(
-                boost::iostreams::zstd::default_compression)));
+        bio::filtering_streambuf<bio::input> out;
+        out.push(bio::zstd_compressor(bio::zstd_params(bio::zstd::default_compression)));
 
         out.push(origin);
 
-        boost::iostreams::copy(out, compressed);
+        bio::copy(out, compressed);
 
         std::string comp = compressed.str();
+        std::string compressed_encoded = base64_encode(
+                reinterpret_cast<const unsigned char*>(comp.c_str()), comp.length());
 
-        return compressed.str();
+
+        std::cout << "The size of the compressed string is " << comp.size() << std::endl;
+
+        return compressed_encoded;
 
     }
 
     static std::string decompress(const std::string &data) {
-
+        std::string compressed_data = base64_decode(data);
+        std::cout << "The size before " << data.size() << std::endl;
         std::stringstream compressed;
         std::stringstream decompressed;
-        compressed << data;
+        compressed << compressed_data;
         boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
         in.push(boost::iostreams::zstd_decompressor());
         in.push(compressed);
         boost::iostreams::copy(in, decompressed);
+
+        std::cout << "The size after " << decompressed.str().size() << std::endl;
 
         return decompressed.str();
     }
