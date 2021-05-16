@@ -1,10 +1,10 @@
 ![alt text](https://github.com/Cmoney12/ClientChatApp/blob/master/resources/vega_logo.png)
 
 
-Work in progress extremely fast Qt chat client written purely in C++ implementing sqlite3, asynchronous networking, and Json. 
+Work in progress extremely fast Qt chat client written purely in C++ implementing sqlite3, asynchronous networking, and BSON. 
 ## Works in conjunction with
 
-https://github.com/Cmoney12/usernameServer/
+https://github.com/Cmoney12/VegaServer/tree/master
 
 ## Main Screen:
 
