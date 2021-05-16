@@ -12,7 +12,9 @@
 #include <QClipboard>
 #include <random>
 #include <string>
+#include <sstream>
 
+typedef unsigned char uint8_t;
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -234,8 +236,8 @@ void MainWindow::connection() {
     socket->connectToHost("127.0.0.1", 1234);
 
     //Send Username to Server
-    QString username_message = QString::fromUtf8(username.c_str()) + "\n";
-    socket->write(QString(username_message).toUtf8());
+   // QString username_message = QString::fromUtf8(username.c_str()) + "\n";
+    //socket->write(QString(username_message).toUtf8());
 }
 
 std::vector<std::pair<std::string, std::string>> MainWindow::simple_tokenizer(const std::string& messages)
@@ -285,26 +287,26 @@ void MainWindow::send_picture() {
         item->setData("Picture", Qt::UserRole + 1);
         standard_model.appendRow(item);
 
-        auto *msg = new chat_message;
+        /**auto *msg = new chat_message;
 
         std::string body = base_64.toStdString();
 
         QString receiver = get_recipient();
 
-        std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
-        msg->body_length(json.size());
-        std::memcpy(msg->body(), json.c_str(), msg->body_length()+1);
+        //std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
+       // msg->body_length(json.size());
+       // std::memcpy(msg->body(), json.c_str(), msg->body_length()+1);
         msg->encode_header();
-        if (std::strlen(msg->data()) == 0) {
-            delete msg;
-            return;
-        }
+        //if (std::strlen(msg->data()) == 0) {
+        //    delete msg;
+        //    return;
+       // }
 
         else {
             socket->write((char*)msg->data(), msg->length());
             data_handler->insert_message(receiver.toStdString(), username, body);
             delete msg;
-        }
+        }**/
 
     }
 }
@@ -318,17 +320,28 @@ void MainWindow::sendMessage() {
     std::string body = (message_line->text()).toStdString();
     QString receiver = get_recipient();
 
-    std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Text");
-    msg->body_length(json.size());
-    std::memcpy(msg->body(), json.c_str(), msg->body_length() + 1);
+    char type[] = "Text";
+    QByteArray receiver_array = receiver.toLocal8Bit();
+    char* rec = receiver_array.data();
+
+    char* user = &username[0];
+    char* bod = &body[0];
+
+    msg->create_bson(rec, user, type, bod);
+    msg->set_size(msg->body_length());
+    std::memcpy(msg->body(), msg->bson, msg->body_length());
     msg->encode_header();
-    if(std::strlen(msg->data()) == 0) {
+
+    //std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Text");
+    //msg->body_length(json.size());
+    //std::memcpy(msg->body(), json.c_str(), msg->body_length() + 1);
+    if(!msg->data()) {
         delete msg;
         return;
     } else {
         //socket->write(QString(message).toUtf8());
         socket->write((char *)msg->data(), msg->length());
-        data_handler->insert_message(receiver.toStdString(), username, body);
+        data_handler->insert_message(rec, user, type, bod);
     }
 
     append_sent(message_line->text());
@@ -338,6 +351,7 @@ void MainWindow::sendMessage() {
 }
 
 void MainWindow::append_sent(const QString& message) {
+
     //append a sent message to the message view
     auto *item1 = new QStandardItem(message);
     item1->setData("Outgoing", Qt::UserRole + 1);
@@ -348,6 +362,7 @@ void MainWindow::append_sent(const QString& message) {
 void MainWindow::append_received(const QString& user_name, const QString& message) {
     // append a received message to the message_view
     QString receiver = get_recipient();
+    std::cout << receiver.toStdString() << std::endl;
     if (receiver == user_name) {
 
         auto *received_message = new QStandardItem(message);
@@ -374,33 +389,25 @@ void MainWindow::onReadyRead() {
 
     // read message received, insert contents into db,
     // append to the appropriate view
-
-    QString line;
     auto *message = new chat_message;
 
-    line = QString::fromUtf8(socket->readAll());
-    if (!line.isEmpty()) {
-        try {
-            int pos = (line.toStdString()).find('{');
-            std::string body = line.toStdString().substr(pos);
-            std::vector<std::string> json_contents = message->read_json(body);
-            data_handler->insert_message(json_contents[1], json_contents[0], json_contents[3]);
-            if (json_contents[2] == "Text") {
-                append_received(QString::fromUtf8(json_contents[1].c_str()),
-                                QString::fromUtf8(json_contents[3].c_str()));
-            }
+    if (socket->bytesAvailable() > message->HEADER_LENGTH) {
 
-            else if (json_contents[2] == "Picture") {
-                receive_picture(QString::fromUtf8(json_contents[1].c_str()),
-                                QString::fromUtf8(json_contents[3].c_str()));
-            }
-        }
+        socket->read((char*)message->header, 4);
 
-        catch (std::out_of_range &exception) {
-            throw exception;
+        if (message->decode_header() && socket->bytesAvailable() >= message->body_length_) {
+
+            socket->read((char *) message->body(), message->body_length());
+
+            message->parse_bson(message->body(), message->body_length());
+
+            data_handler->insert_message(message->Deliverer, message->Receiver, message->Content_Type,
+                                         message->Text_Message);
+            append_received(QString::fromUtf8(message->Receiver),
+                            QString::fromUtf8(message->Text_Message));
         }
+        delete message;
     }
-    delete message;
 }
 
 void MainWindow::erase_user_messages() {

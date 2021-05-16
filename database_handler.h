@@ -136,17 +136,26 @@ public:
         sqlite3_close(db);
     }
 
-    bool insert_message(const std::string& deliverer, const std::string& recipient, const std::string& message) {
+    bool insert_message(const char *deliverer, const char *recipient, const char *type, const char *message) {
         bool success;
         if (connect()) {
+            sqlite3_stmt *insert_stmt = nullptr;
+            const char* sql = "INSERT INTO Messages VALUES(?,?,?,?)";
 
-            std::string sql = "INSERT INTO Messages VALUES('" + deliverer + "','" + recipient + "','" +
-                              message + "','" + get_current_datetime() + "')";
+            if (sqlite3_prepare_v2(db, sql, -1, &insert_stmt, nullptr) == SQLITE_OK) {
 
-            rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &zErrMsg);
-            sqlite3_free(zErrMsg);
-            if (rc == SQLITE_OK) {
-                success = true;
+                sqlite3_bind_text(insert_stmt, 1, deliverer, -1, nullptr);
+                sqlite3_bind_text(insert_stmt, 2, recipient, -1, nullptr);
+                sqlite3_bind_text(insert_stmt, 3, message, -1, nullptr);
+                sqlite3_bind_text(insert_stmt, 4, get_current_datetime().c_str(), -1, nullptr);
+                rc = sqlite3_step(insert_stmt);
+                sqlite3_exec(db, "COMMIT TRANSACTION", nullptr, nullptr, &zErrMsg);
+                sqlite3_finalize(insert_stmt);
+                //rc = sqlite3_exec(db, sql, nullptr, nullptr, &zErrMsg);
+                //sqlite3_free(zErrMsg);
+                if (rc == SQLITE_OK) {
+                    success = true;
+                }
             }
         }
         disconnect();

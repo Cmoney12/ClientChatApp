@@ -52,6 +52,19 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
     if (index.data(Qt::UserRole + 1).toString().contains("Picture")) {
 
         painter->save();
+
+        // load a resize base64 image
+        /**QByteArray original_size_base64;
+        original_size_base64.append(index.data(Qt::DisplayRole).toString());
+        QImage image;
+        image.loadFromData(QByteArray::fromBase64(original_size_base64));
+
+        QImage img_scaled = image.scaled(250,250, Qt::KeepAspectRatio);
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        img_scaled.save(&buffer, "PNG");
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());**/
+
         QTextDocument doc;
         doc.setHtml("<div><img src=\"data:image/png;base64," + index.data(Qt::DisplayRole).toString() + "/></div>");
         painter->drawRect(option.rect);
@@ -59,9 +72,8 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
                            option.rect.top() + ((index.row() == 0) ? d_verticalmargin : 0));
 
         QAbstractTextDocumentLayout::PaintContext ctx;
-        QImage img_scaled;
-        img_scaled.loadFromData(QByteArray::fromBase64(index.data(Qt::DisplayRole).toByteArray()));
-        ctx.clip = QRectF( 0, 0, img_scaled.width(), img_scaled.height());
+        // img_scaled.loadFromData(QByteArray::fromBase64(index.data(Qt::DisplayRole).toByteArray()));
+        // ctx.clip = QRectF( 0, 0, img_scaled.width(), img_scaled.height());
         doc.documentLayout()->draw(painter, ctx);
 
         painter->restore();
@@ -175,22 +187,25 @@ inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QMod
 
     if (index.data(Qt::UserRole + 1) == "Picture") {
 
-        /**QImage img;
-        img.load(index.data(Qt::DisplayRole).toString());
-        QImage img_scaled = img.scaled(200,200, Qt::KeepAspectRatio);
-        //img.scaled()
+        // load a resize base64 image
+        /**QByteArray original_size_base64;
+        original_size_base64.append(index.data(Qt::DisplayRole).toString());
+        QImage image;
+        image.loadFromData(QByteArray::fromBase64(original_size_base64));
+
+        QImage img_scaled = image.scaled(250,250, Qt::KeepAspectRatio);
         QByteArray byteArray;
         QBuffer buffer(&byteArray);
         img_scaled.save(&buffer, "PNG");
         QString base_64 = QString::fromLatin1(byteArray.toBase64().data());**/
+
         bodydoc.setHtml("<div><img src=\"data:image/png;base64," +
-        index.data(Qt::DisplayRole).toString() + "/></div>");
+                                index.data(Qt::DisplayRole).toString() + "/></div>");
 
 // p.translate to the right position
         //QSize size(img.width() * .20, img.height() * .20);
         QSize size(bodydoc.idealWidth() + d_horizontalmargin + d_pointerwidth + d_leftpadding + d_rightpadding,
-                   bodydoc.size().height() + d_bottompadding + d_toppadding + d_verticalmargin +
-                   1);
+                   bodydoc.size().height() + d_bottompadding + d_toppadding + d_verticalmargin + 1);
         return size;
     }
 
