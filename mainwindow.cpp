@@ -304,6 +304,7 @@ void MainWindow::send_picture() {
         char* user = &username[0];
 
         message->create_bson(rec, user, content_type);
+        message->set_size(message->length());
         std::memcpy(message->body(), message->bson, message->body_length());
         message->encode_header();
 
