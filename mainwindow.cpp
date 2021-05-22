@@ -236,8 +236,8 @@ void MainWindow::connection() {
     socket->connectToHost("127.0.0.1", 1234);
 
     //Send Username to Server
-   // QString username_message = QString::fromUtf8(username.c_str()) + "\n";
-    //socket->write(QString(username_message).toUtf8());
+    QString username_message = QString::fromUtf8(username.c_str()) + "\n";
+    socket->write(QString(username_message).toUtf8());
 }
 
 std::vector<std::pair<std::string, std::string>> MainWindow::simple_tokenizer(const std::string& messages)
@@ -274,7 +274,26 @@ void MainWindow::send_picture() {
 
     if (!fileName.isEmpty()) {
 
-        QImage img;
+        auto *message = new chat_message;
+        QByteArray ba = fileName.toLocal8Bit();
+        const char *file_name = ba.data();
+        message->read_file(file_name);
+
+        // in order to copy and paste image
+        // convert to base64 when passing to delegate
+        // so we can save it in original size
+
+        QImage image;
+        image.loadFromData(message->file_buffer, message->file_size);
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        image.save(&buffer, "PNG");
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+        auto *item = new QStandardItem(base_64);
+        item->setData("Picture", Qt::UserRole + 1);
+        standard_model.appendRow(item);
+
+        /**QImage img;
         img.load(fileName);
 
         QImage img_scaled = img.scaled(250,250, Qt::KeepAspectRatio);
@@ -285,8 +304,28 @@ void MainWindow::send_picture() {
 
         auto *item = new QStandardItem(base_64);
         item->setData("Picture", Qt::UserRole + 1);
-        standard_model.appendRow(item);
+        standard_model.appendRow(item);**/
 
+        /**auto *msg = new chat_message;
+
+        std::string body = base_64.toStdString();
+
+        QString receiver = get_recipient();
+
+        //std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
+       // msg->body_length(json.size());
+       // std::memcpy(msg->body(), json.c_str(), msg->body_length()+1);
+        msg->encode_header();
+        //if (std::strlen(msg->data()) == 0) {
+        //    delete msg;
+        //    return;
+       // }
+
+        else {
+            socket->write((char*)msg->data(), msg->length());
+            data_handler->insert_message(receiver.toStdString(), username, body);
+            delete msg;
+        }**/
         /**auto *msg = new chat_message;
 
         std::string body = base_64.toStdString();
@@ -314,7 +353,7 @@ void MainWindow::send_picture() {
 void MainWindow::sendMessage() {
 
 
-    //instatiate a new chat_message and create header
+    // instantiate a new chat_message and create header
     auto *msg = new chat_message;
 
     std::string body = (message_line->text()).toStdString();
@@ -332,9 +371,6 @@ void MainWindow::sendMessage() {
     std::memcpy(msg->body(), msg->bson, msg->body_length());
     msg->encode_header();
 
-    //std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Text");
-    //msg->body_length(json.size());
-    //std::memcpy(msg->body(), json.c_str(), msg->body_length() + 1);
     if(!msg->data()) {
         delete msg;
         return;

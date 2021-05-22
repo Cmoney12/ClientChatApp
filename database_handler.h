@@ -147,12 +147,11 @@ public:
                 sqlite3_bind_text(insert_stmt, 1, deliverer, -1, nullptr);
                 sqlite3_bind_text(insert_stmt, 2, recipient, -1, nullptr);
                 sqlite3_bind_text(insert_stmt, 3, message, -1, nullptr);
-                sqlite3_bind_text(insert_stmt, 4, get_current_datetime().c_str(), -1, nullptr);
+                sqlite3_bind_text(insert_stmt, 4, get_current_datetime(), -1, nullptr);
                 rc = sqlite3_step(insert_stmt);
                 sqlite3_exec(db, "COMMIT TRANSACTION", nullptr, nullptr, &zErrMsg);
                 sqlite3_finalize(insert_stmt);
-                //rc = sqlite3_exec(db, sql, nullptr, nullptr, &zErrMsg);
-                //sqlite3_free(zErrMsg);
+                sqlite3_free(zErrMsg);
                 if (rc == SQLITE_OK) {
                     success = true;
                 }
@@ -164,11 +163,11 @@ public:
 
     std::string load_messages() {
         sqlite3_stmt *selectStmt;
-        std::string query = "select recipient, message from Messages";
+        char query[] = "select recipient, message from Messages";
         //std::string query = "select message from Messages";
         std::string messages;
         if (connect()) {
-            if (sqlite3_prepare_v2(db, query.c_str(), -1, &selectStmt, nullptr) == SQLITE_OK) {
+            if (sqlite3_prepare_v2(db, query, -1, &selectStmt, nullptr) == SQLITE_OK) {
                 int ctotal = sqlite3_column_count(selectStmt); // Count the Number of Columns in the Table
                 int res = 0;
                 while (true) {
@@ -199,10 +198,10 @@ public:
         return messages;
     }
 
-    static std::string get_current_datetime() {
+    static const char* get_current_datetime() {
         time_t t = time(nullptr);
         struct tm *tm = localtime(&t);
-        std::string datetime = asctime(tm);
+        const char* datetime = asctime(tm);
         return datetime;
 
     }
@@ -218,11 +217,14 @@ public:
 
     std::string get_messages(const std::string& username) {
         sqlite3_stmt *selectStmt;
-        std::string sql = "select recipient, message from Messages where recipient = '" +
-                username + "' or deliverer = '" + username + "'";
+        char sql[] = "SELECT recipient, message from Messages WHERE recipient = ? or deliverer = ?";
+        //std::string sql = "select recipient, message from Messages where recipient = '" +
+        //        username + "' or deliverer = '" + username + "'";
         std::string messages;
         if (connect()) {
-            if (sqlite3_prepare_v2(db, sql.c_str(), -1, &selectStmt, nullptr) == SQLITE_OK) {
+            if (sqlite3_prepare_v2(db, sql, -1, &selectStmt, nullptr) == SQLITE_OK) {
+                sqlite3_bind_text(selectStmt, 1, username.c_str(), -1, nullptr);
+                sqlite3_bind_text(selectStmt, 2, username.c_str(), -1, nullptr);
                 int ctotal = sqlite3_column_count(selectStmt); // Count the Number of Columns in the Table
                 int res = 0;
                 while (true) {

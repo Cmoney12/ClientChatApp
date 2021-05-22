@@ -53,8 +53,8 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
 
         painter->save();
 
-        // load a resize base64 image
-        /**QByteArray original_size_base64;
+        // load a resize base64 image for the view
+        QByteArray original_size_base64;
         original_size_base64.append(index.data(Qt::DisplayRole).toString());
         QImage image;
         image.loadFromData(QByteArray::fromBase64(original_size_base64));
@@ -63,10 +63,10 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
         QByteArray byteArray;
         QBuffer buffer(&byteArray);
         img_scaled.save(&buffer, "PNG");
-        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());**/
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
 
         QTextDocument doc;
-        doc.setHtml("<div><img src=\"data:image/png;base64," + index.data(Qt::DisplayRole).toString() + "/></div>");
+        doc.setHtml("<div><img src=\"data:image/png;base64," + base_64 + "/></div>");
         painter->drawRect(option.rect);
         painter->translate(option.rect.left() + d_horizontalmargin,
                            option.rect.top() + ((index.row() == 0) ? d_verticalmargin : 0));
@@ -188,7 +188,7 @@ inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QMod
     if (index.data(Qt::UserRole + 1) == "Picture") {
 
         // load a resize base64 image
-        /**QByteArray original_size_base64;
+        QByteArray original_size_base64;
         original_size_base64.append(index.data(Qt::DisplayRole).toString());
         QImage image;
         image.loadFromData(QByteArray::fromBase64(original_size_base64));
@@ -197,10 +197,10 @@ inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QMod
         QByteArray byteArray;
         QBuffer buffer(&byteArray);
         img_scaled.save(&buffer, "PNG");
-        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());**/
+        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
 
         bodydoc.setHtml("<div><img src=\"data:image/png;base64," +
-                                index.data(Qt::DisplayRole).toString() + "/></div>");
+                                base_64 + "/></div>");
 
 // p.translate to the right position
         //QSize size(img.width() * .20, img.height() * .20);

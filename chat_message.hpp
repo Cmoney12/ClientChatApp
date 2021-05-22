@@ -14,11 +14,12 @@
 
 class message {
 public:
-    const char* Deliverer;
-    const char* Receiver;
-    const char* Content_Type;
-    // const uint8_t** File_Data;
-    const char* Text_Message;
+    const char* Deliverer{};
+    const char* Receiver{};
+    const char* Content_Type{};
+    uint32_t *Content_Size = nullptr;
+    const uint8_t **Content_Buff = nullptr;
+    const char* Text_Message{};
 };
 
 class chat_message: public message {
@@ -78,7 +79,7 @@ public:
 
         fseek(in_file, 0L, SEEK_END);
 
-        std::size_t const file_size = ftell(in_file);
+        file_size = ftell(in_file);
 
         rewind(in_file);
 
@@ -100,7 +101,7 @@ public:
 
     unsigned char * decompress(unsigned char* data) {
 
-        unsigned long long const rSize = ZSTD_getFrameContentSize(data, c_size);
+        unsigned long long const rSize = ZSTD_getFrameContentSize(data, 2);
         auto* decompressed = new unsigned char[rSize];
 
         dSize = ZSTD_decompress(decompressed, rSize, data, c_size);
@@ -140,7 +141,7 @@ public:
     }
 
     bool decode_header() {
-        body_length_ = std::atoi((char*)header);
+        body_length_ = std::atoi((const char*)header);
         std::cout << "size " << body_length_ << std::endl;
         set_size(body_length_);
         std::memcpy(data_, header, HEADER_LENGTH);
@@ -156,6 +157,7 @@ public:
         const bson_t *received;
         bson_reader_t *reader;
         bson_iter_t iter;
+        bson_subtype_t binary_type = BSON_SUBTYPE_BINARY;
         // size_t size1 = 0;
         // uint32_t* binary_len = nullptr;
         char text_type[] = "Text";
@@ -185,9 +187,9 @@ public:
         if (bson_iter_init_find(&iter, received, "Data") && BSON_ITER_HOLDS_UTF8(&iter)) {
             if (Content_Type && std::strcmp(Content_Type, text_type) == 0)
                 Text_Message = bson_iter_utf8(&iter, nullptr);
-            //else {
-            //     bson_iter_binary(&iter, nullptr, binary_len, File_Data);
-           // }
+        }
+        else if (bson_iter_init_find(&iter, received, "Data") && BSON_ITER_HOLDS_BINARY(&iter)) {
+            bson_iter_binary(&iter, &binary_type, Content_Size, Content_Buff);
         }
 
         bson_reader_destroy(reader);
@@ -206,6 +208,7 @@ public:
         return false;
     }
 
+    std::size_t file_size;
     const uint8_t *bson{};
     uint8_t* data_{};
     char* bson_str{};
