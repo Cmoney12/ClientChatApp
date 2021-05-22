@@ -158,8 +158,6 @@ public:
         bson_reader_t *reader;
         bson_iter_t iter;
         bson_subtype_t binary_type = BSON_SUBTYPE_BINARY;
-        // size_t size1 = 0;
-        // uint32_t* binary_len = nullptr;
         char text_type[] = "Text";
         const char* str;
 

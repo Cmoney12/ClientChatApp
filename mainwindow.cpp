@@ -275,6 +275,7 @@ void MainWindow::send_picture() {
     if (!fileName.isEmpty()) {
 
         auto *message = new chat_message;
+
         QByteArray ba = fileName.toLocal8Bit();
         const char *file_name = ba.data();
         message->read_file(file_name);
@@ -293,60 +294,27 @@ void MainWindow::send_picture() {
         item->setData("Picture", Qt::UserRole + 1);
         standard_model.appendRow(item);
 
-        /**QImage img;
-        img.load(fileName);
-
-        QImage img_scaled = img.scaled(250,250, Qt::KeepAspectRatio);
-        QByteArray byteArray;
-        QBuffer buffer(&byteArray);
-        img_scaled.save(&buffer, "PNG");
-        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
-
-        auto *item = new QStandardItem(base_64);
-        item->setData("Picture", Qt::UserRole + 1);
-        standard_model.appendRow(item);**/
-
-        /**auto *msg = new chat_message;
-
-        std::string body = base_64.toStdString();
+        char content_type[] = "Picture";
 
         QString receiver = get_recipient();
 
-        //std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
-       // msg->body_length(json.size());
-       // std::memcpy(msg->body(), json.c_str(), msg->body_length()+1);
-        msg->encode_header();
-        //if (std::strlen(msg->data()) == 0) {
-        //    delete msg;
-        //    return;
-       // }
+        QByteArray receiver_array = receiver.toLocal8Bit();
+        char* rec = receiver_array.data();
 
+        char* user = &username[0];
+
+        message->create_bson(rec, user, content_type);
+        std::memcpy(message->body(), message->bson, message->body_length());
+        message->encode_header();
+
+        if (!message->body()) {
+            delete message;
+            return;
+        }
         else {
-            socket->write((char*)msg->data(), msg->length());
-            data_handler->insert_message(receiver.toStdString(), username, body);
-            delete msg;
-        }**/
-        /**auto *msg = new chat_message;
-
-        std::string body = base_64.toStdString();
-
-        QString receiver = get_recipient();
-
-        //std::string json = chat_message::json_write(receiver.toStdString(), username, body, "Picture");
-       // msg->body_length(json.size());
-       // std::memcpy(msg->body(), json.c_str(), msg->body_length()+1);
-        msg->encode_header();
-        //if (std::strlen(msg->data()) == 0) {
-        //    delete msg;
-        //    return;
-       // }
-
-        else {
-            socket->write((char*)msg->data(), msg->length());
-            data_handler->insert_message(receiver.toStdString(), username, body);
-            delete msg;
-        }**/
-
+            socket->write((char*)message->data(), message->length());
+            delete message;
+        }
     }
 }
 
