@@ -202,7 +202,7 @@ inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QMod
         bodydoc.setHtml("<div><img src=\"data:image/png;base64," +
                                 base_64 + "/></div>");
 
-// p.translate to the right position
+        // p.translate to the right position
         //QSize size(img.width() * .20, img.height() * .20);
         QSize size(bodydoc.idealWidth() + d_horizontalmargin + d_pointerwidth + d_leftpadding + d_rightpadding,
                    bodydoc.size().height() + d_bottompadding + d_toppadding + d_verticalmargin + 1);

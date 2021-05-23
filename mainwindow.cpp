@@ -320,7 +320,7 @@ void MainWindow::sendMessage() {
     } else {
         //socket->write(QString(message).toUtf8());
         socket->write((char *)msg->data(), msg->length());
-        data_handler->insert_message(rec, user, type, bod);
+        data_handler->insert_message(user, rec, type, bod);
     }
 
     append_sent(message_line->text());
