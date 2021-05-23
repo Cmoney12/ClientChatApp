@@ -120,7 +120,9 @@ public:
 
     void create_message_table() {
         if (connect()) {
-            char create_table[] = "CREATE TABLE Messages ( deliverer TEXT, recipient TEXT, message TEXT, datetime  TEXT);";
+            char create_table[] = "CREATE TABLE Messages ( deliverer TEXT, recipient TEXT, content_type TEXT, "
+                                  "message TEXT, datetime  TEXT);";
+
             rc = sqlite3_exec(db, create_table, nullptr, nullptr, &zErrMsg);
         }
         sqlite3_close(db);
@@ -140,14 +142,15 @@ public:
         bool success;
         if (connect()) {
             sqlite3_stmt *insert_stmt = nullptr;
-            const char* sql = "INSERT INTO Messages VALUES(?,?,?,?)";
+            const char* sql = "INSERT INTO Messages VALUES(?, ?, ?, ?, ?)";
 
             if (sqlite3_prepare_v2(db, sql, -1, &insert_stmt, nullptr) == SQLITE_OK) {
 
                 sqlite3_bind_text(insert_stmt, 1, deliverer, -1, nullptr);
                 sqlite3_bind_text(insert_stmt, 2, recipient, -1, nullptr);
                 sqlite3_bind_text(insert_stmt, 3, message, -1, nullptr);
-                sqlite3_bind_text(insert_stmt, 4, get_current_datetime(), -1, nullptr);
+                sqlite3_bind_text(insert_stmt, 4, type, -1, nullptr);
+                sqlite3_bind_text(insert_stmt, 5, get_current_datetime(), -1, nullptr);
                 rc = sqlite3_step(insert_stmt);
                 sqlite3_exec(db, "COMMIT TRANSACTION", nullptr, nullptr, &zErrMsg);
                 sqlite3_finalize(insert_stmt);
@@ -198,12 +201,48 @@ public:
         return messages;
     }
 
+    std::list<std::tuple<std::string, std::string, std::string>> get_messages(const std::string& username) {
+        sqlite3_stmt *selectStmt = nullptr;
+        char sql[] = "SELECT deliverer, message, content_type from Messages WHERE recipient = ? or deliverer = ?";
+
+        std::list<std::tuple<std::string, std::string, std::string>> message_table;
+
+        if(connect()) {
+            if (sqlite3_prepare_v2(db, sql, -1, &selectStmt, nullptr) == SQLITE_OK) {
+                if (sqlite3_prepare_v2(db, sql, -1, &selectStmt, nullptr) == SQLITE_OK) {
+                    sqlite3_bind_text(selectStmt, 1, username.c_str(), -1, nullptr);
+                    sqlite3_bind_text(selectStmt, 2, username.c_str(), -1, nullptr);
+                    int ctotal = sqlite3_column_count(selectStmt); // Count the Number of Columns in the Table
+                    int res = 0;
+                    while (true) {
+                        res = sqlite3_step(selectStmt); // Execute SQL Statement.
+                        if (res == SQLITE_ROW) {
+                            //sqlite3_finalize(selectStmt);
+                            int i = 0;
+                            std::string first_field = (char *) sqlite3_column_text(selectStmt, i);
+                            std::string second_field = (char *) sqlite3_column_text(selectStmt, i+=1);
+                            std::string third_field = (char *) sqlite3_column_text(selectStmt, i+=1);
+                            // print or format the output as you want
+
+                            message_table.emplace_back(std::make_tuple(first_field, second_field, third_field));
+                        }
+                        if (res == SQLITE_DONE || res == SQLITE_ERROR) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        sqlite3_finalize(selectStmt);
+        disconnect();
+        return message_table;
+    }
+
     static const char* get_current_datetime() {
         time_t t = time(nullptr);
         struct tm *tm = localtime(&t);
         const char* datetime = asctime(tm);
         return datetime;
-
     }
 
     void clear_messages() {
@@ -215,7 +254,7 @@ public:
         disconnect();
     }
 
-    std::string get_messages(const std::string& username) {
+    /**std::string get_messages(const std::string& username) {
         sqlite3_stmt *selectStmt;
         char sql[] = "SELECT recipient, message from Messages WHERE recipient = ? or deliverer = ?";
         //std::string sql = "select recipient, message from Messages where recipient = '" +
@@ -253,7 +292,7 @@ public:
         sqlite3_finalize(selectStmt);
         disconnect();
         return messages;
-    }
+    }**/
 
     std::string get_username() {
         std::string user_name;

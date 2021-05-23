@@ -224,13 +224,13 @@ void MainWindow::copy_data() const {
 void MainWindow::connection() {
     //retrieve and parse messages from db
     std::string messages = data_handler->load_messages();
-    std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
+    /**std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
     for(const auto& msg: message_list) {
         if (msg.first == "user")
             append_received(QString::fromUtf8(msg.first.c_str()), QString::fromUtf8(msg.second.c_str()));
         else
             append_sent(QString::fromUtf8(msg.second.c_str()));
-    }
+    }**/
 
     //Connect to host
     socket->connectToHost("127.0.0.1", 1234);
@@ -240,32 +240,6 @@ void MainWindow::connection() {
     socket->write(QString(username_message).toUtf8());
 }
 
-std::vector<std::pair<std::string, std::string>> MainWindow::simple_tokenizer(const std::string& messages)
-{
-    std::vector<std::pair<std::string, std::string>> message_list;
-    if (!messages.empty()) {
-        std::string::size_type key_pos = 0;
-        std::string::size_type key_end;
-        std::string::size_type val_pos;
-        std::string::size_type val_end;
-
-        while((key_end = messages.find(':', key_pos)) != std::string::npos)
-        {
-            if((val_pos = messages.find_first_not_of(": ", key_end)) == std::string::npos)
-                break;
-
-            val_end = messages.find('\n', val_pos);
-            message_list.emplace_back(messages.substr(key_pos, key_end - key_pos), messages.substr(val_pos, val_end - val_pos));
-
-            key_pos = val_end;
-            if(key_pos != std::string::npos)
-                ++key_pos;
-        }
-
-    }
-
-        return message_list;
-}
 
 void MainWindow::send_picture() {
 
@@ -447,14 +421,17 @@ QString MainWindow::get_recipient() const {
 void MainWindow::set_recipient() {
     //sets recipient of the message and changes messages
     QString receiver = get_recipient();
-    std::string messages = data_handler->get_messages(receiver.toStdString());
-    standard_model.clear();
-    std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
-    for(const auto& msg: message_list) {
-        if (msg.first == username)
-            append_received(QString::fromUtf8(msg.first.c_str()), QString::fromUtf8(msg.second.c_str()));
-        else
-            append_sent(QString::fromUtf8(msg.second.c_str()));
+    std::list<std::tuple<std::string, std::string, std::string>> message_data = data_handler->
+            get_messages(receiver.toStdString());
+
+    for (auto i: message_data) {
+        if (std::get<0>(i) != username) {
+            append_received(QString::fromUtf8(std::get<0>(i).c_str()),
+                            QString::fromUtf8(std::get<2>(i).c_str()));
+        }
+        else {
+            append_sent(QString::fromUtf8(std::get<2>(i).c_str()));
+        }
     }
 }
 

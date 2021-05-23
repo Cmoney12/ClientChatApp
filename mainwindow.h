@@ -49,9 +49,7 @@ public:
     void append_sent(const QString& message);
     void append_received(const QString& username, const QString& message);
     void receive_picture(const QString& user_name, const QString& img_data);
-    static std::vector<std::pair<std::string, std::string>> simple_tokenizer(const std::string& s);
     QString get_recipient() const;
-    static QString toBase64(const QString& imgPath);
 
 
 public slots:
