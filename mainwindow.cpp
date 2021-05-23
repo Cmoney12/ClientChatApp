@@ -222,15 +222,13 @@ void MainWindow::copy_data() const {
 }
 
 void MainWindow::connection() {
-    //retrieve and parse messages from db
-    std::string messages = data_handler->load_messages();
-    /**std::vector<std::pair<std::string, std::string>> message_list = simple_tokenizer(messages);
-    for(const auto& msg: message_list) {
-        if (msg.first == "user")
-            append_received(QString::fromUtf8(msg.first.c_str()), QString::fromUtf8(msg.second.c_str()));
-        else
-            append_sent(QString::fromUtf8(msg.second.c_str()));
-    }**/
+    //retrieve all users that you have sent or
+    // received messages from
+
+    std::list<std::string> username_list = data_handler->get_all_users();
+    for (auto user: username_list) {
+        stringList->append(user.c_str());
+    }
 
     //Connect to host
     socket->connectToHost("127.0.0.1", 1234);

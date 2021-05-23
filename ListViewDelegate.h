@@ -81,6 +81,7 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
     }
 
     else {
+
         QTextDocument bodydoc;
         QTextOption textOption(bodydoc.defaultTextOption());
         textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);

@@ -254,6 +254,39 @@ public:
         disconnect();
     }
 
+    std::list<std::string> get_all_users() {
+        sqlite3_stmt *selectstmt;
+        char sql[] = "SELECT * FROM (SELECT DISTINCT deliverer from Messages\n"
+                     "WHERE deliverer NOT IN (SELECT username FROM Login)\n"
+                     "union all\n"
+                     "SELECT DISTINCT recipient from Messages\n"
+                     "WHERE recipient NOT IN (SELECT username FROM Login))";
+        std::list<std::string> username_list;
+        if (connect()) {
+            if (sqlite3_prepare_v2(db, sql, -1, &selectstmt, nullptr) == SQLITE_OK) {
+                int ctotal = sqlite3_column_count(selectstmt);
+                int res;
+                while (true) {
+                    res = sqlite3_step(selectstmt); // Execute SQL Statement.
+                    if (res == SQLITE_ROW) {
+                        //sqlite3_finalize(selectStmt);
+                        for (int i = 0; i < ctotal; i++)  // Loop times the number of columns in the table
+                        {
+                            std::string username = (char *) sqlite3_column_text(selectstmt, i);
+                            username_list.emplace_back(username);
+                        }
+                    }
+                    if (res == SQLITE_DONE || res == SQLITE_ERROR) {
+                        break;
+                    }
+                }
+            }
+        }
+        sqlite3_finalize(selectstmt);
+        disconnect();
+        return username_list;
+    }
+
     /**std::string get_messages(const std::string& username) {
         sqlite3_stmt *selectStmt;
         char sql[] = "SELECT recipient, message from Messages WHERE recipient = ? or deliverer = ?";
