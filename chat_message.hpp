@@ -64,7 +64,7 @@ public:
         return body_length_;
     }
 
-    void set_size(std::size_t size) {
+    void set_size(int size) {
         body_length_ = size;
         data_ = new uint8_t[size + HEADER_LENGTH];
     }
@@ -99,7 +99,7 @@ public:
 
     }
 
-    unsigned char * decompress(const uint8_t **data, uint32_t *csize) {
+    unsigned char* decompress(const uint8_t **data, uint32_t *csize) {
 
         unsigned long long const rSize = ZSTD_getFrameContentSize(data, 2);
         auto* decompressed = new unsigned char[rSize];
@@ -225,12 +225,12 @@ public:
     const uint8_t *bson{};
     uint8_t* data_{};
     char* bson_str{};
-    std::size_t body_length_{};
+    int body_length_{};
     uint8_t* cc_buff = nullptr;
     unsigned char* file_buffer{};
     enum { MAX_MESSAGE_SIZE = 99999 };
     enum { HEADER_LENGTH = 4 };
-    uint8_t header[HEADER_LENGTH + 1]{};
+    uint8_t header[HEADER_LENGTH]{};
     std::size_t dSize{};
     std::size_t c_size{};
 };
