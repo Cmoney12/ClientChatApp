@@ -48,7 +48,7 @@ public:
     QStandardItemModel standard_model;
     void append_sent(const QString& message);
     void append_received(const QString& username, const QString& message);
-    void receive_picture(const QString& user_name, const QString& img_data);
+    void receive_picture(unsigned char* rec_image, std::size_t size);
     QString get_recipient() const;
 
 

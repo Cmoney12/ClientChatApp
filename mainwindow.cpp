@@ -226,7 +226,7 @@ void MainWindow::connection() {
     // received messages from
 
     std::list<std::string> username_list = data_handler->get_all_users();
-    for (auto user: username_list) {
+    for (const auto& user: username_list) {
         stringList->append(user.c_str());
     }
 
@@ -263,10 +263,10 @@ void MainWindow::send_picture() {
         image.save(&buffer, "PNG");
         QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
         auto *item = new QStandardItem(base_64);
-        item->setData("Picture", Qt::UserRole + 1);
+        item->setData("Image", Qt::UserRole + 1);
         standard_model.appendRow(item);
 
-        char content_type[] = "Picture";
+        char content_type[] = "Image";
 
         QString receiver = get_recipient();
 
@@ -276,7 +276,7 @@ void MainWindow::send_picture() {
         char* user = &username[0];
 
         message->create_bson(rec, user, content_type);
-        message->set_size(message->length());
+        message->set_size(message->body_length());
         std::memcpy(message->body(), message->bson, message->body_length());
         message->encode_header();
 
@@ -284,8 +284,12 @@ void MainWindow::send_picture() {
             delete message;
             return;
         }
+
         else {
             socket->write((char*)message->data(), message->length());
+            QByteArray pic = base_64.toLocal8Bit();
+            char* picture = pic.data();
+            data_handler->insert_message(user, rec, content_type, picture);
             delete message;
         }
     }
@@ -354,10 +358,16 @@ void MainWindow::append_received(const QString& user_name, const QString& messag
 
 }
 
-void MainWindow::receive_picture(const QString& user_name, const QString& img_data) {
+void MainWindow::receive_picture(unsigned char* rec_image, std::size_t size) {
 
-    auto *item = new QStandardItem(img_data);
-    item->setData("Picture", Qt::UserRole + 1);
+    QImage image;
+    image.loadFromData(rec_image, size);
+    QByteArray byteArray;
+    QBuffer buffer(&byteArray);
+    image.save(&buffer, "PNG");
+    QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+    auto *item = new QStandardItem(base_64);
+    item->setData("Image", Qt::UserRole + 1);
     standard_model.appendRow(item);
 
 }
@@ -370,18 +380,25 @@ void MainWindow::onReadyRead() {
 
     if (socket->bytesAvailable() > message->HEADER_LENGTH) {
 
-        socket->read((char*)message->header, 4);
+        socket->read((char*)message->header, message->HEADER_LENGTH);
 
         if (message->decode_header() && socket->bytesAvailable() >= message->body_length_) {
 
             socket->read((char *) message->body(), message->body_length());
 
-            message->parse_bson(message->body(), message->body_length());
+            message->parse_bson(message->body(), message->body_length_);
 
-            data_handler->insert_message(message->Deliverer, message->Receiver, message->Content_Type,
-                                         message->Text_Message);
-            append_received(QString::fromUtf8(message->Receiver),
-                            QString::fromUtf8(message->Text_Message));
+            if (std::strcmp(message->Content_Type, "Image") == 0) {
+                unsigned char* picture = message->decompress(message->Content_Buff, message->Content_Size);
+                receive_picture(picture, message->dSize);
+            }
+            else {
+                data_handler->insert_message(message->Deliverer, message->Receiver, message->Content_Type,
+                                             message->Text_Message);
+                append_received(QString::fromUtf8(message->Receiver),
+                                QString::fromUtf8(message->Text_Message));
+
+            }
         }
         delete message;
     }
@@ -419,11 +436,16 @@ QString MainWindow::get_recipient() const {
 void MainWindow::set_recipient() {
     //sets recipient of the message and changes messages
     QString receiver = get_recipient();
-    std::list<std::tuple<std::string, std::string, std::string>> message_data = data_handler->
-            get_messages(receiver.toStdString());
+    std::list<std::tuple<std::string, std::string, std::string>> message_data =
+            data_handler->get_messages(receiver.toStdString());
 
     for (auto i: message_data) {
-        if (std::get<0>(i) != username) {
+        if (std::get<1>(i) == "Image") {
+            auto *item = new QStandardItem(QString::fromUtf8(std::get<2>(i).c_str()));
+            item->setData("Image", Qt::UserRole + 1);
+            standard_model.appendRow(item);
+        }
+        else if (std::get<0>(i) != username) {
             append_received(QString::fromUtf8(std::get<0>(i).c_str()),
                             QString::fromUtf8(std::get<2>(i).c_str()));
         }

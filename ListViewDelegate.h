@@ -49,7 +49,7 @@ inline ListViewDelegate::ListViewDelegate(QObject *parent)
 inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem const &option, QModelIndex const &index) const
 {
 
-    if (index.data(Qt::UserRole + 1).toString().contains("Picture")) {
+    if (index.data(Qt::UserRole + 1).toString().contains("Image")) {
 
         painter->save();
 
