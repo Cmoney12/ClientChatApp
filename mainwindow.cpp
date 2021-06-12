@@ -280,7 +280,7 @@ void MainWindow::send_picture() {
         std::memcpy(message->body(), message->bson, message->body_length());
         message->encode_header();
 
-        if (!message->body()) {
+        if (!message->data()) {
             delete message;
             return;
         }
@@ -290,8 +290,8 @@ void MainWindow::send_picture() {
             QByteArray pic = base_64.toLocal8Bit();
             char* picture = pic.data();
             data_handler->insert_message(user, rec, content_type, picture);
-            delete message;
         }
+        delete message;
     }
 }
 

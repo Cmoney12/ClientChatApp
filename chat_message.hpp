@@ -10,6 +10,7 @@
 #include <bson.h>
 #include <zstd.h>
 #include <chrono>
+#include <fstream>
 
 
 class message {
@@ -115,6 +116,7 @@ public:
         return decompressed;
     }
 
+
     const uint8_t* create_bson(char* receiver, char* deliverer, char* type, char* text = nullptr) {
 
         bson_t document;
@@ -125,22 +127,24 @@ public:
         if(cc_buff != nullptr) {
             std::cout << "picture serialized " << std::endl;
             //bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
-            bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, file_buffer, file_size);
+            bson_append_binary(&document, "Data", 4, BSON_SUBTYPE_BINARY, file_buffer, file_size);
             //bson_append_int32(&document, "Size", -1, static_cast<int>(c_size));
         }
 
         else if(text != nullptr)
             bson_append_utf8(&document, "Data", -1, text, -1);
 
-        const char* str = bson_as_canonical_extended_json(&document, nullptr);
-        std::cout << str << std::endl;
+        //const char* str = bson_as_canonical_extended_json(&document, nullptr);
+        //std::cout << str << std::endl;
 
-        body_length_ = document.len;
+        body_length_ = (int)document.len;
         std::cout << "BSON LEN" << body_length_ << std::endl;
 
-        bson = bson_get_data(&document);
+        //bson = bson_get_data(&document);
+        bool steal = true;
+        uint32_t size;
 
-        bson_destroy(&document);
+       bson = bson_destroy_with_steal(&document, steal, &size);
 
         return bson;
 
@@ -150,7 +154,7 @@ public:
         //body_length_ = std::atoi((char*)header);
         std::memcpy(&body_length_, header, sizeof body_length_);
         set_size(body_length_);
-        std::memcpy(data_, header, HEADER_LENGTH);
+        //std::memcpy(body_length_, header, HEADER_LENGTH);
         data_[3] = (body_length_>>24) & 0xFF;
         data_[2] = (body_length_>>16) & 0xFF;
         data_[1] = (body_length_>>8) & 0xFF;
