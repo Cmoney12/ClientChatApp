@@ -126,25 +126,22 @@ public:
         bson_append_utf8(&document, "Type", -1, type, -1);
         if(cc_buff != nullptr) {
             std::cout << "picture serialized " << std::endl;
-            //bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
-            bson_append_binary(&document, "Data", 4, BSON_SUBTYPE_BINARY, file_buffer, file_size);
+            bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
+            //bson_append_binary(&document, "Data", 4, BSON_SUBTYPE_BINARY, file_buffer, file_size);
             //bson_append_int32(&document, "Size", -1, static_cast<int>(c_size));
         }
 
         else if(text != nullptr)
             bson_append_utf8(&document, "Data", -1, text, -1);
 
-        //const char* str = bson_as_canonical_extended_json(&document, nullptr);
-        //std::cout << str << std::endl;
-
         body_length_ = (int)document.len;
-        std::cout << "BSON LEN" << body_length_ << std::endl;
+        std::cout << "BSON LEN " << body_length_ << std::endl;
 
         //bson = bson_get_data(&document);
         bool steal = true;
-        uint32_t size;
+        uint32_t size1;
 
-       bson = bson_destroy_with_steal(&document, steal, &size);
+        bson = bson_destroy_with_steal(&document, steal, &size1);
 
         return bson;
 
@@ -217,9 +214,6 @@ public:
             int newNu;
             memcpy(&newNu, data_, sizeof newNu);
             std::cout << "SIZE " << newNu << std::endl;
-            //uint8_t header_size[HEADER_LENGTH + 1] = "";
-            //std::sprintf((char*)header_size, "%5d", static_cast<int>(body_length_));
-            //std::memcpy((char*)data_, header_size, HEADER_LENGTH);
             return true;
         }
         return false;
