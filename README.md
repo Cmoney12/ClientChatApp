@@ -2,6 +2,8 @@
 
 
 Work in progress extremely fast Qt chat client written purely in C++ implementing sqlite3, asynchronous networking, and BSON. 
+Image sending and compression using zstandard is currently in progress.
+
 ## Works in conjunction with
 
 https://github.com/Cmoney12/VegaServer/tree/master
