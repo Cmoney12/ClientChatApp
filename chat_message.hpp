@@ -101,11 +101,11 @@ public:
     }
 
     unsigned char* decompress(const uint8_t **data, uint32_t *csize) {
-
-        unsigned long long const rSize = ZSTD_getFrameContentSize(data, 2);
+        unsigned long long const rSize = ZSTD_getFrameContentSize(data, reinterpret_cast<std::size_t>(&csize));
         auto* decompressed = new unsigned char[rSize];
 
-        dSize = ZSTD_decompress(decompressed, rSize, data, reinterpret_cast<size_t>(csize));
+
+        dSize = ZSTD_decompress(decompressed, rSize, &data, reinterpret_cast<size_t>(csize));
 
         if (dSize == c_size) {
             std::cout << "Success" << std::endl;
@@ -126,8 +126,8 @@ public:
         bson_append_utf8(&document, "Type", -1, type, -1);
         if(cc_buff != nullptr) {
             std::cout << "picture serialized " << std::endl;
-            bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
-            //bson_append_binary(&document, "Data", 4, BSON_SUBTYPE_BINARY, file_buffer, file_size);
+            //bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
+            bson_append_binary(&document, "Data", 4, BSON_SUBTYPE_BINARY, file_buffer, file_size);
             //bson_append_int32(&document, "Size", -1, static_cast<int>(c_size));
         }
 
@@ -148,7 +148,6 @@ public:
     }
 
     bool decode_header() {
-        //body_length_ = std::atoi((char*)header);
         std::memcpy(&body_length_, header, sizeof body_length_);
         set_size(body_length_);
         //std::memcpy(body_length_, header, HEADER_LENGTH);
@@ -172,10 +171,6 @@ public:
         bson_iter_t iter;
         bson_subtype_t binary_type = BSON_SUBTYPE_BINARY;
         char text_type[] = "Text";
-        const char* str;
-
-        //for(int i = 0; i < body_length_; i++)
-        //    std::cout << &bson_data[i];
 
         reader = bson_reader_new_from_data(bson_data, size);
 
@@ -206,7 +201,7 @@ public:
     }
 
     bool encode_header() const {
-        if (body_length_ <= MAX_MESSAGE_SIZE && body_length_){
+        if (body_length_ <= MAX_MESSAGE_SIZE && body_length_) {
             data_[3] = (body_length_>>24) & 0xFF;
             data_[2] = (body_length_>>16) & 0xFF;
             data_[1] = (body_length_>>8) & 0xFF;

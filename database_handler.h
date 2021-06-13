@@ -110,6 +110,7 @@ public:
             struct sqlite3_stmt *selectstmt;
             int result = sqlite3_prepare_v2(db, sql, -1, &selectstmt, nullptr);
             if (result == SQLITE_OK) {
+                sqlite3_free(selectstmt);
                 exists = true;
             }
         }
