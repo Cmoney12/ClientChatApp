@@ -18,8 +18,8 @@ public:
     const char* Deliverer{};
     const char* Receiver{};
     const char* Content_Type{};
-    uint32_t Content_Size;
-    const uint8_t *Content_Buff;
+    uint32_t Content_Size{};
+    const uint8_t *Content_Buff{};
     const char* Text_Message{};
 };
 
@@ -100,19 +100,18 @@ public:
 
     }
 
-    unsigned char* decompress(const uint8_t **data, uint32_t *csize) {
-        //auto *s = reinterpret_cast<std::size_t*>(csize);
-        unsigned long long const rSize = ZSTD_getFrameContentSize(*(data), reinterpret_cast<size_t>(csize));
+    unsigned char* decompress(const uint8_t *data, const uint32_t& csize) {
+        unsigned long long const rSize = ZSTD_getFrameContentSize(data, csize);
         auto* decompressed = new unsigned char[rSize];
 
-        dSize = ZSTD_decompress(decompressed, rSize, &data, reinterpret_cast<size_t>(csize));
+        dSize = ZSTD_decompress(decompressed, rSize, data, csize);
 
-        if (dSize == c_size) {
+        /**if (dSize == c_size) {
             std::cout << "Success" << std::endl;
         }
         else {
-            std::cout << "decompressed size " << dSize << " Compressed size " << c_size << std::endl;
-        }
+            std::cout << "decompressed size " << dSize << " Compressed size " << csize << std::endl;
+        }**/
         return decompressed;
     }
 
@@ -135,7 +134,6 @@ public:
             bson_append_utf8(&document, "Data", -1, text, -1);
 
         body_length_ = (int)document.len;
-        std::cout << "BSON LEN " << body_length_ << std::endl;
 
         //bson = bson_get_data(&document);
         bool steal = true;

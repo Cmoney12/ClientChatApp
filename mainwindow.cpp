@@ -361,7 +361,7 @@ void MainWindow::append_received(const QString& user_name, const QString& messag
 void MainWindow::receive_picture(unsigned char* rec_image, std::size_t size) {
 
     QImage image;
-    image.loadFromData(rec_image, size);
+    image.loadFromData(rec_image, (int)size);
     QByteArray byteArray;
     QBuffer buffer(&byteArray);
     image.save(&buffer, "PNG");

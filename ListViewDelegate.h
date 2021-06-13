@@ -67,13 +67,13 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
 
         QTextDocument doc;
         doc.setHtml("<div><img src=\"data:image/png;base64," + base_64 + "/></div>");
-        painter->drawRect(option.rect);
+        //painter->drawRect(option.rect);
         painter->translate(option.rect.left() + d_horizontalmargin,
                            option.rect.top() + ((index.row() == 0) ? d_verticalmargin : 0));
 
         QAbstractTextDocumentLayout::PaintContext ctx;
         // img_scaled.loadFromData(QByteArray::fromBase64(index.data(Qt::DisplayRole).toByteArray()));
-        // ctx.clip = QRectF( 0, 0, img_scaled.width(), img_scaled.height());
+        ctx.clip = QRectF( 0, 0, img_scaled.width(), img_scaled.height());
         doc.documentLayout()->draw(painter, ctx);
 
         painter->restore();
