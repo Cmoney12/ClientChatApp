@@ -18,8 +18,8 @@ public:
     const char* Deliverer{};
     const char* Receiver{};
     const char* Content_Type{};
-    uint32_t *Content_Size = nullptr;
-    const uint8_t **Content_Buff = nullptr;
+    uint32_t Content_Size;
+    const uint8_t *Content_Buff;
     const char* Text_Message{};
 };
 
@@ -101,9 +101,9 @@ public:
     }
 
     unsigned char* decompress(const uint8_t **data, uint32_t *csize) {
-        unsigned long long const rSize = ZSTD_getFrameContentSize(data, reinterpret_cast<std::size_t>(&csize));
+        //auto *s = reinterpret_cast<std::size_t*>(csize);
+        unsigned long long const rSize = ZSTD_getFrameContentSize(*(data), reinterpret_cast<size_t>(csize));
         auto* decompressed = new unsigned char[rSize];
-
 
         dSize = ZSTD_decompress(decompressed, rSize, &data, reinterpret_cast<size_t>(csize));
 
@@ -126,8 +126,8 @@ public:
         bson_append_utf8(&document, "Type", -1, type, -1);
         if(cc_buff != nullptr) {
             std::cout << "picture serialized " << std::endl;
-            //bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
-            bson_append_binary(&document, "Data", 4, BSON_SUBTYPE_BINARY, file_buffer, file_size);
+            bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
+            //bson_append_binary(&document, "Data", 4, BSON_SUBTYPE_BINARY, file_buffer, file_size);
             //bson_append_int32(&document, "Size", -1, static_cast<int>(c_size));
         }
 
@@ -193,7 +193,7 @@ public:
                 Text_Message = bson_iter_utf8(&iter, nullptr);
         }
         else if (bson_iter_init_find(&iter, received, "Data") && BSON_ITER_HOLDS_BINARY(&iter)) {
-            bson_iter_binary(&iter, &binary_type, Content_Size, Content_Buff);
+            bson_iter_binary(&iter, &binary_type, &Content_Size, &Content_Buff);
         }
 
         bson_reader_destroy(reader);
