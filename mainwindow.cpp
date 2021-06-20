@@ -118,8 +118,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     message_view->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    connect(message_view, SIGNAL(customContextMenuRequested(const QPoint &)),
-            this, SLOT(show_context_menu(const QPoint &)));
+    //connect(message_view, SIGNAL(customContextMenuRequested(const QPoint &)),
+    //        this, SLOT(show_context_menu(const QPoint &)));
 
     connect(connect_button, &QPushButton::clicked, this, &MainWindow::connection);
     connect(logout_, SIGNAL(triggered()), this, SLOT(logout()));

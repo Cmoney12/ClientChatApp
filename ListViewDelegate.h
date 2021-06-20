@@ -186,7 +186,7 @@ inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QMod
     textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
     bodydoc.setDefaultTextOption(textOption);
 
-    if (index.data(Qt::UserRole + 1) == "Picture") {
+    if (index.data(Qt::UserRole + 1) == "Image") {
 
         // load a resize base64 image
         QByteArray original_size_base64;
