@@ -117,7 +117,6 @@ public:
         bson_append_utf8(&document, "Deliverer", -1, deliverer, -1);
         bson_append_utf8(&document, "Type", -1, type, -1);
         if(cc_buff != nullptr) {
-            std::cout << "picture serialized " << std::endl;
             bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
         }
 
