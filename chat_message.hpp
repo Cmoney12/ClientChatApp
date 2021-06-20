@@ -32,7 +32,7 @@ public:
         delete[] file_buffer;
         delete[] cc_buff;
         delete[] data_;
-        bson_free(bson_str);
+        bson_free((void *) bson);
     }
 
     uint8_t* data() const
@@ -106,15 +106,8 @@ public:
 
         dSize = ZSTD_decompress(decompressed, rSize, data, csize);
 
-        /**if (dSize == c_size) {
-            std::cout << "Success" << std::endl;
-        }
-        else {
-            std::cout << "decompressed size " << dSize << " Compressed size " << csize << std::endl;
-        }**/
         return decompressed;
     }
-
 
     const uint8_t* create_bson(char* receiver, char* deliverer, char* type, char* text = nullptr) {
 
@@ -126,8 +119,6 @@ public:
         if(cc_buff != nullptr) {
             std::cout << "picture serialized " << std::endl;
             bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
-            //bson_append_binary(&document, "Data", 4, BSON_SUBTYPE_BINARY, file_buffer, file_size);
-            //bson_append_int32(&document, "Size", -1, static_cast<int>(c_size));
         }
 
         else if(text != nullptr)
@@ -135,7 +126,6 @@ public:
 
         body_length_ = (int)document.len;
 
-        //bson = bson_get_data(&document);
         bool steal = true;
         uint32_t size1;
 
@@ -153,10 +143,8 @@ public:
         data_[2] = (body_length_>>16) & 0xFF;
         data_[1] = (body_length_>>8) & 0xFF;
         data_[0] = body_length_ & 0xFF;
-        std::cout << "Body Size " << body_length_ << std::endl;
         if(body_length_ > MAX_MESSAGE_SIZE) {
             body_length_ = 0;
-            std::cout << "Body Size " << body_length_ << std::endl;
             return false;
         }
         return true;
@@ -206,7 +194,6 @@ public:
             data_[0] = body_length_ & 0xFF;
             int newNu;
             memcpy(&newNu, data_, sizeof newNu);
-            std::cout << "SIZE " << newNu << std::endl;
             return true;
         }
         return false;
@@ -215,7 +202,6 @@ public:
     std::size_t file_size{};
     const uint8_t *bson{};
     uint8_t* data_{};
-    char* bson_str{};
     int body_length_{};
     uint8_t* cc_buff = nullptr;
     unsigned char* file_buffer{};
