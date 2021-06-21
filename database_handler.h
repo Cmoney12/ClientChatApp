@@ -21,7 +21,6 @@ public:
     bool connect() {
         if(!is_open && sqlite3_open(directory.c_str(), &db) == SQLITE_OK) {
             is_open = true;
-
         }
         return is_open;
     }
@@ -80,10 +79,12 @@ public:
         }
 
         if(valid_login_table() && valid_message_table()) {
+            disconnect();
             return true;
         }
 
         else {
+            disconnect();
             return false;
         }
     }
@@ -126,8 +127,8 @@ public:
 
             rc = sqlite3_exec(db, create_table, nullptr, nullptr, &zErrMsg);
         }
-        sqlite3_close(db);
         sqlite3_free(zErrMsg);
+        disconnect();
     }
 
     void create_login_table() {
@@ -136,7 +137,7 @@ public:
             rc = sqlite3_exec(db, create_table, nullptr, nullptr, &zErrMsg);
         }
         sqlite3_free(zErrMsg);
-        sqlite3_close(db);
+        disconnect();
     }
 
     bool insert_message(const char *deliverer, const char *recipient, const char *type, const char *message) {

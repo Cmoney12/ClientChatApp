@@ -33,6 +33,7 @@ public:
         delete[] cc_buff;
         delete[] data_;
         bson_free((void *) bson);
+        bson_destroy(&document);
     }
 
     uint8_t* data() const
@@ -101,6 +102,7 @@ public:
     }
 
     unsigned char* decompress(const uint8_t *data, const uint32_t& csize) {
+
         unsigned long long const rSize = ZSTD_getFrameContentSize(data, csize);
         auto* decompressed = new unsigned char[rSize];
 
@@ -111,7 +113,6 @@ public:
 
     const uint8_t* create_bson(char* receiver, char* deliverer, char* type, char* text = nullptr) {
 
-        bson_t document;
         bson_init(&document);
         bson_append_utf8(&document, "Receiver", -1, receiver, -1);
         bson_append_utf8(&document, "Deliverer", -1, deliverer, -1);
@@ -198,6 +199,7 @@ public:
         return false;
     }
 
+    bson_t document;
     std::size_t file_size{};
     const uint8_t *bson{};
     uint8_t* data_{};
