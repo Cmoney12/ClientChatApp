@@ -145,14 +145,12 @@ void MainWindow::show_context_menu(const QPoint& pos) const {
     myMenu.addAction("Copy", this, SLOT(copy_data()));
     myMenu.addAction("Save_img", this, SLOT(save_image()));
 
-
-
     // Show context menu at handling position
     myMenu.exec(globalPos);
 
 }
 
-void MainWindow::save_image() {
+void MainWindow::save_image() const {
     QModelIndex index = message_view->currentIndex();
     standard_model.data(index);
 
@@ -263,7 +261,7 @@ void MainWindow::send_picture() {
         image.save(&buffer, "PNG");
         QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
         auto *item = new QStandardItem(base_64);
-        item->setData("Image", Qt::UserRole + 1);
+        item->setData("Image/Outgoing", Qt::UserRole + 1);
         standard_model.appendRow(item);
 
         char content_type[] = "Image";

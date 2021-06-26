@@ -49,9 +49,9 @@ inline ListViewDelegate::ListViewDelegate(QObject *parent)
 inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem const &option, QModelIndex const &index) const
 {
 
-    if (index.data(Qt::UserRole + 1).toString().contains("Image")) {
+    QTextDocument bodydoc;
 
-        painter->save();
+    if (index.data(Qt::UserRole + 1).toString().contains("Image")) {
 
         // load a resize base64 image for the view
         QByteArray original_size_base64;
@@ -65,10 +65,9 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
         img_scaled.save(&buffer, "PNG");
         QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
 
-        QTextDocument doc;
-        doc.setHtml("<div><img src=\"data:image/png;base64," + base_64 + "/></div>");
+        bodydoc.setHtml("<div><img src=\"data:image/png;base64," + base_64 + "/></div>");
         //painter->drawRect(option.rect);
-        painter->translate(option.rect.left() + d_horizontalmargin,
+        /**painter->translate(option.rect.left() + d_horizontalmargin,
                            option.rect.top() + ((index.row() == 0) ? d_verticalmargin : 0));
 
         QAbstractTextDocumentLayout::PaintContext ctx;
@@ -76,19 +75,20 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
         ctx.clip = QRectF( 0, 0, img_scaled.width(), img_scaled.height());
         doc.documentLayout()->draw(painter, ctx);
 
-        painter->restore();
+        painter->restore();**/
 
     }
 
     else {
 
-        QTextDocument bodydoc;
         QTextOption textOption(bodydoc.defaultTextOption());
         textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
         bodydoc.setDefaultTextOption(textOption);
         bodydoc.setDefaultFont(QFont("Roboto", 12));
         QString bodytext(index.data(Qt::DisplayRole).toString());
         bodydoc.setHtml(bodytext);
+
+    }
 
         qreal contentswidth =
                 option.rect.width() * d_widthfraction - d_horizontalmargin - d_pointerwidth - d_leftpadding -
@@ -175,7 +175,6 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
         bodydoc.documentLayout()->draw(painter, ctx);
 
         painter->restore();
-    }
 }
 
 inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QModelIndex const &index) const

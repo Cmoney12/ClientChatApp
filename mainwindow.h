@@ -69,7 +69,7 @@ public slots:
 
 private slots:
     void copy_data() const;
-    void save_image();
+    void save_image() const;
 
 private:
     Ui::MainWindow *ui;
