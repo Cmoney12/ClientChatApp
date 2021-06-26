@@ -53,19 +53,21 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
 
     if (index.data(Qt::UserRole + 1).toString().contains("Image")) {
 
-        // load a resize base64 image for the view
-        QByteArray original_size_base64;
-        original_size_base64.append(index.data(Qt::DisplayRole).toString());
-        QImage image;
-        image.loadFromData(QByteArray::fromBase64(original_size_base64));
+        //set style sheet for image to keep all images
+        // the same size ratio
+        QString css(".container {\n"
+                    "    width: auto;\n"
+                    "    height: 100%;\n"
+                    "}");
 
-        QImage img_scaled = image.scaled(250,250, Qt::KeepAspectRatio);
-        QByteArray byteArray;
-        QBuffer buffer(&byteArray);
-        img_scaled.save(&buffer, "PNG");
-        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+        QString html("<div class=\"container\">\n"
+                     "  <img width=\"250\" src=\"data:image/png;base64," +
+                     index.data(Qt::DisplayRole).toString() + "/></div>\n"
+                     "</div>");
 
-        bodydoc.setHtml("<div><img src=\"data:image/png;base64," + base_64 + "/></div>");
+        bodydoc.setDefaultStyleSheet(css);
+
+        bodydoc.setHtml(html);
         //painter->drawRect(option.rect);
         /**painter->translate(option.rect.left() + d_horizontalmargin,
                            option.rect.top() + ((index.row() == 0) ? d_verticalmargin : 0));
@@ -187,23 +189,19 @@ inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QMod
 
     if (index.data(Qt::UserRole + 1).toString().contains("Image")) {
 
-        // load a resize base64 image
-        QByteArray original_size_base64;
-        original_size_base64.append(index.data(Qt::DisplayRole).toString());
-        QImage image;
-        image.loadFromData(QByteArray::fromBase64(original_size_base64));
+        QString css(".container {\n"
+                    "    width: auto;\n"
+                    "    height: 100%;\n"
+                    "}");
 
-        QImage img_scaled = image.scaled(250,250, Qt::KeepAspectRatio);
-        QByteArray byteArray;
-        QBuffer buffer(&byteArray);
-        img_scaled.save(&buffer, "PNG");
-        QString base_64 = QString::fromLatin1(byteArray.toBase64().data());
+        QString html("<div class=\"container\">\n"
+                     "  <img width=\"250\" src=\"data:image/png;base64," +
+                     index.data(Qt::DisplayRole).toString() + "/></div>\n"
+                                                              "</div>");
+        bodydoc.setDefaultStyleSheet(css);
+        bodydoc.setHtml(html);
 
-        bodydoc.setHtml("<div><img src=\"data:image/png;base64," +
-                                base_64 + "/></div>");
 
-        // p.translate to the right position
-        //QSize size(img.width() * .20, img.height() * .20);
         QSize size(bodydoc.idealWidth() + d_horizontalmargin + d_pointerwidth + d_leftpadding + d_rightpadding,
                    bodydoc.size().height() + d_bottompadding + d_toppadding + d_verticalmargin + 1);
         return size;

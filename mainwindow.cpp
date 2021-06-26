@@ -134,6 +134,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     username = data_handler->get_username();
 
+    /**if (!connection()) {
+        QTimer *timer = new QTimer(this);
+        connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+        timer->start(1000);
+    }**/
+
 }
 
 void MainWindow::show_context_menu(const QPoint& pos) const {
@@ -219,12 +225,12 @@ void MainWindow::copy_data() const {
 
 }
 
-void MainWindow::connection() {
+bool MainWindow::connection() {
     //retrieve all users that you have sent or
     // received messages from
 
     std::list<std::string> username_list = data_handler->get_all_users();
-    for (const auto& user: username_list) {
+    for (const auto &user: username_list) {
         stringList->append(user.c_str());
     }
 
@@ -232,8 +238,14 @@ void MainWindow::connection() {
     socket->connectToHost("127.0.0.1", 1234);
 
     //Send Username to Server
-    QString username_message = QString::fromUtf8(username.c_str()) + "\n";
-    socket->write(QString(username_message).toUtf8());
+    if ((socket->state() == QTcpSocket::ConnectedState)) {
+        QString username_message = QString::fromUtf8(username.c_str()) + "\n";
+        socket->write(QString(username_message).toUtf8());
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 
@@ -459,3 +471,4 @@ MainWindow::~MainWindow()
     delete data_handler;
     delete ui;
 }
+

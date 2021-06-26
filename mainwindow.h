@@ -51,9 +51,8 @@ public:
     void receive_picture(unsigned char* rec_image, std::size_t size);
     QString get_recipient() const;
 
-
 public slots:
-    void connection();
+    bool connection();
     void sendMessage();
     void onReadyRead();
     void erase_all_messages();
