@@ -21,7 +21,6 @@ public:
     bool connect() {
         if(!is_open && sqlite3_open(directory.c_str(), &db) == SQLITE_OK) {
             is_open = true;
-
         }
         return is_open;
     }

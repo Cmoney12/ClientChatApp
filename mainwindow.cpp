@@ -253,7 +253,7 @@ void MainWindow::send_picture() {
         message->read_file(file_name);
 
         // in order to copy and paste image
-        // convert to base64 when passing to delegate
+        // convert to base64 in the og size when passing to delegate
         // so we can save it in original size
 
         QImage image;

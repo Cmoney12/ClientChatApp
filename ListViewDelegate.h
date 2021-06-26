@@ -96,7 +96,7 @@ inline void ListViewDelegate::paint(QPainter *painter, QStyleOptionViewItem cons
         bodydoc.setTextWidth(contentswidth);
         qreal bodyheight = bodydoc.size().height();
 
-        bool outgoing = index.data(Qt::UserRole + 1).toString() == "Outgoing";
+        bool outgoing = index.data(Qt::UserRole + 1).toString().contains("Outgoing");
 
         painter->save();
         painter->setRenderHint(QPainter::Antialiasing);
@@ -186,7 +186,7 @@ inline QSize ListViewDelegate::sizeHint(QStyleOptionViewItem const &option, QMod
     textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
     bodydoc.setDefaultTextOption(textOption);
 
-    if (index.data(Qt::UserRole + 1) == "Image") {
+    if (index.data(Qt::UserRole + 1).toString().contains("Image")) {
 
         // load a resize base64 image
         QByteArray original_size_base64;

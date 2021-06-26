@@ -32,7 +32,7 @@ public:
         delete[] file_buffer;
         delete[] cc_buff;
         delete[] data_;
-        bson_free(bson_str);
+        bson_free((void *)bson);
     }
 
     uint8_t* data() const
@@ -215,7 +215,6 @@ public:
     std::size_t file_size{};
     const uint8_t *bson{};
     uint8_t* data_{};
-    char* bson_str{};
     int body_length_{};
     uint8_t* cc_buff = nullptr;
     unsigned char* file_buffer{};
