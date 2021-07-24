@@ -16,7 +16,7 @@
 class chat_message {
 public:
 
-    chat_message() {}
+    chat_message() = default;
 
     ~chat_message() {
         delete[] file_buffer;
@@ -195,7 +195,7 @@ public:
     uint32_t Content_Size{};
     const uint8_t *Content_Buff{};
     const char* Text_Message{};
-    bson_t document;
+    bson_t document{};
     std::size_t file_size{};
     const uint8_t *bson{};
     uint8_t* data_{};
