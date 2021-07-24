@@ -13,26 +13,17 @@
 #include <fstream>
 
 
-class message {
-public:
-    const char* Deliverer{};
-    const char* Receiver{};
-    const char* Content_Type{};
-    uint32_t Content_Size{};
-    const uint8_t *Content_Buff{};
-    const char* Text_Message{};
-};
-
-class chat_message: public message {
+class chat_message {
 public:
 
-    chat_message() : message() {}
+    chat_message() {}
 
     ~chat_message() {
         delete[] file_buffer;
         delete[] cc_buff;
         delete[] data_;
-        bson_free((void *)bson);
+        bson_free((void *) bson);
+        bson_destroy(&document);
     }
 
     uint8_t* data() const
@@ -101,33 +92,23 @@ public:
     }
 
     unsigned char* decompress(const uint8_t *data, const uint32_t& csize) {
+
         unsigned long long const rSize = ZSTD_getFrameContentSize(data, csize);
         auto* decompressed = new unsigned char[rSize];
 
         dSize = ZSTD_decompress(decompressed, rSize, data, csize);
 
-        /**if (dSize == c_size) {
-            std::cout << "Success" << std::endl;
-        }
-        else {
-            std::cout << "decompressed size " << dSize << " Compressed size " << csize << std::endl;
-        }**/
         return decompressed;
     }
 
-
     const uint8_t* create_bson(char* receiver, char* deliverer, char* type, char* text = nullptr) {
 
-        bson_t document;
         bson_init(&document);
         bson_append_utf8(&document, "Receiver", -1, receiver, -1);
         bson_append_utf8(&document, "Deliverer", -1, deliverer, -1);
         bson_append_utf8(&document, "Type", -1, type, -1);
         if(cc_buff != nullptr) {
-            std::cout << "picture serialized " << std::endl;
             bson_append_binary(&document, "Data", -1, BSON_SUBTYPE_BINARY, cc_buff, c_size);
-            //bson_append_binary(&document, "Data", 4, BSON_SUBTYPE_BINARY, file_buffer, file_size);
-            //bson_append_int32(&document, "Size", -1, static_cast<int>(c_size));
         }
 
         else if(text != nullptr)
@@ -135,7 +116,6 @@ public:
 
         body_length_ = (int)document.len;
 
-        //bson = bson_get_data(&document);
         bool steal = true;
         uint32_t size1;
 
@@ -153,10 +133,8 @@ public:
         data_[2] = (body_length_>>16) & 0xFF;
         data_[1] = (body_length_>>8) & 0xFF;
         data_[0] = body_length_ & 0xFF;
-        std::cout << "Body Size " << body_length_ << std::endl;
         if(body_length_ > MAX_MESSAGE_SIZE) {
             body_length_ = 0;
-            std::cout << "Body Size " << body_length_ << std::endl;
             return false;
         }
         return true;
@@ -206,12 +184,18 @@ public:
             data_[0] = body_length_ & 0xFF;
             int newNu;
             memcpy(&newNu, data_, sizeof newNu);
-            std::cout << "SIZE " << newNu << std::endl;
             return true;
         }
         return false;
     }
 
+    const char* Deliverer{};
+    const char* Receiver{};
+    const char* Content_Type{};
+    uint32_t Content_Size{};
+    const uint8_t *Content_Buff{};
+    const char* Text_Message{};
+    bson_t document;
     std::size_t file_size{};
     const uint8_t *bson{};
     uint8_t* data_{};
